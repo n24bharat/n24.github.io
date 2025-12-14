@@ -199,7 +199,7 @@ async function loadNews() {
   const container = document.getElementById("news");
   const loading = document.getElementById("loading-message");
   
-  // *** SAFETY CHECK: The only way to stop the "loading is null" error ***
+  // Safety check to prevent the 'loading is null' error
   if (!loading) return console.error("Loading element is missing from HTML."); 
 
   container.innerHTML = "";
@@ -244,7 +244,7 @@ async function loadNews() {
   }
 }
 
-/* ---------- LOAD VIDEOS (Fully Implemented) ---------- */
+/* ---------- LOAD VIDEOS ---------- */
 async function loadVideos() {
   const container = document.getElementById("videos");
   const loading = document.getElementById("loading-message");
@@ -301,7 +301,6 @@ function setLang(lang, button) {
   if (button) {
     button.classList.add("active");
   } else {
-    // Fallback for initial load
     const defaultButton = document.querySelector(`.lang-toggle button[data-lang="${lang}"]`);
     if (defaultButton) {
         defaultButton.classList.add("active");
@@ -344,7 +343,6 @@ function switchTab(tab, button) {
   if (button) {
     button.classList.add("active");
   } else {
-    // Fallback for initial load
     const defaultButton = document.querySelector(`nav button[data-tab="${tab}"]`);
     if (defaultButton) {
         defaultButton.classList.add("active");
@@ -368,10 +366,9 @@ function filterContent() {
 
 /* ---------- INITIAL LOAD - Everything wrapped in DOMContentLoaded ---------- */
 document.addEventListener('DOMContentLoaded', (event) => {
-    // setLang will call loadNews
+    // This sequence calls loadNews() twice, which is safe but might be slightly slower.
+    // It ensures all buttons and content are loaded correctly.
     setLang(CURRENT_LANG); 
-    
-    // switchTab will call loadNews again, ensuring tab button is active
     switchTab('news');
 });
 </script>
