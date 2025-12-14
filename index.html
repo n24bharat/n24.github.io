@@ -24,7 +24,6 @@
     }
 
     body {
-      /* Improved Font Fallback for Professional Look */
       font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
@@ -36,12 +35,12 @@
     /* --- HEADER --- */
     header {
       background: #fff;
-      border-bottom: 3px solid var(--primary); /* Increased border for professional look */
+      border-bottom: 3px solid var(--primary); 
       padding: 1rem;
       position: sticky;
       top: 0;
       z-index: 1000;
-      box-shadow: 0 6px 10px -3px rgba(0,0,0,0.1); /* Deeper shadow */
+      box-shadow: 0 6px 10px -3px rgba(0,0,0,0.1); 
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -51,7 +50,7 @@
     
     .status-badge {
       font-size: 0.8rem;
-      background: #f3f4f6; /* Lighter background */
+      background: #f3f4f6; 
       padding: 6px 12px;
       border-radius: 16px;
       color: var(--gray);
@@ -62,20 +61,20 @@
     /* --- LAYOUT --- */
     main { max-width: 960px; margin: 0 auto; padding: 20px 15px; }
     
-    /* FIX: Hiding main content until loaded to prevent flicker */
+    /* FIX: Hiding content only until the FIRST successful render to prevent flicker, but showing immediately after. */
     #feed-stream {
       display: flex;
       flex-direction: column;
-      gap: 24px; /* Increased gap */
+      gap: 24px; 
+      opacity: 0; /* Hidden by default */
     }
-    main:not(.loaded) #feed-stream { opacity: 0; }
     main.loaded #feed-stream { opacity: 1; transition: opacity 0.5s ease-in; }
 
     /* --- CARD DESIGN --- */
     .news-card {
       background: var(--card);
-      border-radius: 12px; /* Smoother corners */
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Professional lift */
+      border-radius: 12px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
       overflow: hidden;
       border: 1px solid #e5e7eb;
       transition: transform 0.2s, box-shadow 0.2s;
@@ -89,12 +88,12 @@
       font-weight: 700;
       text-transform: uppercase;
       color: var(--secondary);
-      margin-bottom: 8px; /* Increased margin */
+      margin-bottom: 8px; 
       display: block;
     }
 
     .card-title {
-      font-size: 1.25rem; /* Slightly larger title */
+      font-size: 1.25rem; 
       margin: 0 0 12px 0;
       font-weight: 700;
       line-height: 1.35;
@@ -103,7 +102,7 @@
     .card-title a:hover { color: var(--primary); text-decoration: underline; }
 
     .card-desc {
-      font-size: 1rem; /* Slightly larger text */
+      font-size: 1rem; 
       color: #374151;
       margin-bottom: 15px;
       display: -webkit-box;
@@ -115,7 +114,7 @@
     .card-meta {
       font-size: 0.85rem;
       color: var(--gray);
-      border-top: 1px solid #e5e7eb; /* Darker line */
+      border-top: 1px solid #e5e7eb; 
       padding-top: 12px;
       display: flex;
       justify-content: space-between;
@@ -174,37 +173,7 @@
 </main>
 
 <span style="display:none;">
-  <section>
-    <h3>Deep Dive: Political, Economic & Corruption Trends in India (The Unreported Analysis)</h3>
-    <p>
-      <strong>Political Trends & Election Integrity:</strong> N24.in serves as a crucial hub for tracking the biggest debates in Indian democracy. We aggregate independent coverage surrounding sensitive issues like **vote chori**, **EVM hacking** controversies, and various **voter fraud allegations**. Journalists are scrutinizing **election transparency**, **political accountability**, and the ethics of **campaign funding**. The platform highlights critical analysis of **election manifesto** scrutiny, monitoring **voter turnout**, and reports on **booth capturing** incidents. Key topics include debates on **election reforms**, the strategies of **opposition unity**, and the core principles of **free and fair elections** and **democracy in action** amidst growing concerns over **political propaganda**. We offer comprehensive coverage of **political debates**, **election surveys**, and **political opinion polls** that mainstream media often avoids.
-    </p>
-    <p>
-      <strong>Economic & Financial Distress:</strong> Independent sources provide essential context on India's macroeconomic challenges. The continuous debate on **girta rupaiya** (falling rupee) and **currency depreciation** is linked to broader concerns about the **inflation rate** and a growing **cost of living crisis**. Coverage focuses on the real **unemployment rate** and shifts in **job market trends**. The platform tracks key movements in the **stock market** and analyzes large corporate houses, especially **Adani group news** and its impact on the nation's financial stability. Financial investigative journalism exposes failures in **taxation policy**, **GST updates**, and the impact of the **fiscal deficit**. We also cover the impact of **global trade wars**, **supply chain disruptions**, and the necessary shift towards **green economy** and **renewable energy investments** for a sustainable **economic recovery**.
-    </p>
-    <p>
-      <strong>Corruption, Governance & Corporate Scrutiny:</strong> Independent journalism is vital for exposing **corruption scandals**, **bribery cases**, and **money laundering** operations. The Supreme Court's action on **Electoral Bonds** has led to deep investigations into **political corruption** and **corporate lobbying**, central to the 'chanda lo dhanda do' narrative. N24.in aggregates reports on **misuse of public funds**, **tender manipulation**, and failures in **transparency in governance**. We feature content focusing on **whistleblower cases**, the need for stronger **anti-corruption laws**, and the role of **RTI activism** and **public interest litigation** in ensuring **public accountability**. This section also monitors **Adani group news** regarding corporate governance and financial irregularities exposed by international reports.
-    </p>
-    <p>
-      <strong>Social Justice & Cultural Shifts:</strong> Beyond politics and economics, the platform captures critical social movements. We highlight **youth activism**, **student protests**, and crucial debates on **women empowerment** and **gender equality**. Focus areas include **healthcare reforms**, the growing crisis of **mental health awareness**, and gaps in **education reforms** and **skill development**. We track trends in **social media** and analyze the impact of **digital literacy** and **online communities** on public discourse. The independent media remains dedicated to covering issues like **farmer protests**, the state of the **rural economy**, and efforts towards **water conservation** and **air pollution control** in major cities.
-    </p>
-    
-    <div class="tags-cloud">
-      <span class="seo-tag">#VoteChori</span>
-      <span class="seo-tag">#EVMHacking</span>
-      <span class="seo-tag">#GirtaRupaiya</span>
-      <span class="seo-tag">#UnemploymentRate</span>
-      <span class="seo-tag">#AdaniGroupNews</span>
-      <span class="seo-tag">#CorruptionScandals</span>
-      <span class="seo-tag">#ElectoralBonds</span>
-      <span class="seo-tag">#InflationRate</span>
-      <span class="seo-tag">#FarmerProtests</span>
-      <span class="seo-tag">#WomenEmpowerment</span>
-      <span class="seo-tag">#DemocracyInAction</span>
-      <span class="seo-tag">#InvestigativeJournalism</span>
-    </div>
-  </section>
-</span>
+  </span>
 
 <footer>
   <div style="text-align:center; padding: 20px; font-size: 0.8rem; color: #777;">
@@ -244,14 +213,14 @@ const SOURCES = {
   ]
 };
 
-// FIX: Switched to a reliable dedicated RSS-to-JSON proxy for videos to fix 404.
-const NEWS_PROXY_URL = "https://api.allorigins.win/get?url=";
-const VIDEO_PROXY_URL = "https://api.rss2json.com/v1/api.json?rss_url=";
+// FIX: Reverting to a single, generally reliable JSON proxy for all XML/RSS content.
+const PROXY_URL = "https://api.allorigins.win/get?url=";
 
 
 let FEED_ITEMS = [];
 let LOADING_COUNT = 0;
 let lastRenderedCount = 0; 
+let INITIAL_RENDER_COMPLETE = false; // New flag to control the soft flicker fix
 
 // *** Infinite Scroll Variables ***
 let DISPLAY_LIMIT = 20; 
@@ -260,21 +229,30 @@ const INCREMENT_STEP = 15;
 
 /* --- DATA FETCHING FUNCTIONS --- */
 
-// Fetches Google News RSS (XML), uses allorigins proxy
 async function fetchNews(source) {
   const rssUrl = `https://news.google.com/rss/search?q=${source.url}&hl=hi&gl=IN&ceid=IN:hi`;
-  
+  await fetchAndParse(rssUrl, source.name, 'news');
+}
+
+async function fetchVideo(source) {
+  const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.id}`;
+  await fetchAndParse(rssUrl, source.name, 'video');
+}
+
+async function fetchAndParse(url, sourceName, type) {
   LOADING_COUNT++;
+  updateStatus();
 
   try {
-    const res = await fetch(NEWS_PROXY_URL + encodeURIComponent(rssUrl));
+    // 1. Fetch JSON wrapper from proxy
+    const res = await fetch(PROXY_URL + encodeURIComponent(url));
     if (!res.ok) throw new Error(`Network Error: ${res.status}`);
     
     const data = await res.json();
     if (!data || !data.contents) throw new Error("Proxy returned empty content.");
-
     const text = data.contents;
     
+    // 2. Parse XML content
     const parser = new DOMParser();
     const xml = parser.parseFromString(text, "text/xml");
     if (xml.querySelector("parsererror")) throw new Error("XML Parse Error");
@@ -286,104 +264,87 @@ async function fetchNews(source) {
       if(title.length < 10) return;
 
       const pubDate = entry.querySelector("pubDate")?.textContent || entry.querySelector("published")?.textContent;
-      let link = entry.querySelector("link")?.textContent;
-      
-      const match = link.match(/url=(.+?)\&/);
-      if (match) link = decodeURIComponent(match[1]);
-      
-      const rawDesc = entry.querySelector("description")?.textContent || "";
-      const div = document.createElement("div");
-      div.innerHTML = rawDesc;
-      let snippet = div.innerText.substring(0, 160) + "...";
-      
+      let link = "";
+      let thumb = "";
+      let snippet = "";
+
+      if (type === 'video') {
+        // Get Link
+        link = entry.querySelector("link[rel='alternate']")?.getAttribute('href') || entry.querySelector("link")?.textContent;
+        
+        let vidId = null;
+        
+        // Robust Fallback: Extract ID from the link (FIX for preview)
+        if (link) {
+             // Regex to capture the ID from /watch?v=, /youtu.be/ or /embed/
+            const match = link.match(/(?:v=|youtu\.be\/|embed\/)([^&?"]+)/);
+            if (match) {
+                vidId = match[1];
+            }
+        }
+
+        if(vidId) {
+            // Constructing the preferred medium-quality thumbnail URL (FIX for preview)
+            thumb = `https://i.ytimg.com/vi/${vidId}/mqdefault.jpg`;
+        } else {
+            // Last resort: Check for media:thumbnail attribute URL
+            thumb = entry.querySelector("media\\:group media\\:thumbnail")?.getAttribute('url') || entry.querySelector("media\\:thumbnail")?.getAttribute('url');
+        }
+        
+      } else {
+        // News Link Cleaning
+        link = entry.querySelector("link")?.textContent;
+        const match = link.match(/url=(.+?)\&/);
+        if (match) link = decodeURIComponent(match[1]);
+        
+        const rawDesc = entry.querySelector("description")?.textContent || "";
+        const div = document.createElement("div");
+        div.innerHTML = rawDesc;
+        snippet = div.innerText.substring(0, 160) + "...";
+      }
+
       FEED_ITEMS.push({
-        source: source.name,
+        source: sourceName,
         title: title,
         link: link,
         date: new Date(pubDate),
-        type: 'news',
-        thumb: '',
+        type: type,
+        thumb: thumb,
         snippet: snippet
       });
     });
   } catch (e) {
-    console.warn(`Failed to load ${source.name} (news): ${e.message}`);
+    console.warn(`Failed to load ${sourceName} (${type}): ${e.message}`);
   } finally {
+    // FIX: Decrement count and check render status in FINALLY block.
     LOADING_COUNT--;
-    checkCompleteAndRender();
+    checkAndInitialRender(); 
   }
 }
-
-// Fetches YouTube RSS, uses rss2json proxy (Fixes 404 and Video Preview)
-async function fetchVideo(source) {
-  const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.id}`;
-  
-  LOADING_COUNT++;
-
-  try {
-    const res = await fetch(VIDEO_PROXY_URL + encodeURIComponent(rssUrl));
-    if (!res.ok) throw new Error(`Network Error: ${res.status}`);
-    
-    const data = await res.json();
-    if (data.status !== 'ok') throw new Error(`RSS2JSON Error: ${data.message || 'Failed to fetch.'}`);
-
-    data.items.forEach(item => {
-      const title = item.title;
-      const link = item.link;
-      const pubDate = item.pubDate;
-
-      if(title.length < 10) return;
-
-      let vidId = null;
-      let thumb = null;
-      
-      // FIX: Reliable Video ID extraction from the link
-      const match = link.match(/(?:v=|youtu\.be\/|embed\/)([^&?"]+)/);
-      if (match) {
-        vidId = match[1];
-      }
-      
-      if(vidId) {
-        // FIX: Constructing the preferred medium-quality thumbnail URL
-        thumb = `https://i.ytimg.com/vi/${vidId}/mqdefault.jpg`;
-      }
-      
-      FEED_ITEMS.push({
-        source: source.name,
-        title: title,
-        link: link,
-        date: new Date(pubDate),
-        type: 'video',
-        thumb: thumb,
-        snippet: ''
-      });
-    });
-  } catch (e) {
-    console.warn(`Failed to load ${source.name} (video): ${e.message}`);
-  } finally {
-    LOADING_COUNT--;
-    checkCompleteAndRender(); 
-  }
-}
-
 
 /* --- RENDERING & UTILITY --- */
 
-function checkCompleteAndRender() {
+function checkAndInitialRender() {
     updateStatus();
 
-    // Only proceed to final render when all fetching is complete
-    if (LOADING_COUNT === 0) {
-        FEED_ITEMS.sort((a, b) => b.date - a.date);
+    // Check if enough data is loaded or if all loading is complete
+    if (FEED_ITEMS.length >= DISPLAY_LIMIT || LOADING_COUNT === 0) {
         
-        // Anti-Flicker: Clear container and render initial batch for stability
-        const container = document.getElementById("feed-stream");
-        container.innerHTML = ''; 
-        lastRenderedCount = 0; 
-        document.querySelector('main').classList.add('loaded'); // Show content (CSS opacity transition)
-        render(); 
+        // Only run this block once to handle the initial render
+        if (!INITIAL_RENDER_COMPLETE) {
+            // Sort, render first batch, and show content
+            FEED_ITEMS.sort((a, b) => b.date - a.date);
+            document.getElementById("feed-stream").innerHTML = ''; 
+            lastRenderedCount = 0; 
+            render(); 
+            
+            // FIX: Show content after the first render to stop flickering 
+            document.querySelector('main').classList.add('loaded'); 
+            INITIAL_RENDER_COMPLETE = true;
+        }
     }
 }
+
 
 function createCardHtml(item) {
     let mediaHtml = '';
@@ -435,8 +396,10 @@ function render() {
   lastRenderedCount = totalItemsToDisplay; 
   
   const loaderEl = document.getElementById('loader');
-  if(FEED_ITEMS.length > 0 && LOADING_COUNT === 0) {
-      loaderEl.style.display = 'none';
+  if(LOADING_COUNT === 0) {
+      // Hide loader only when ALL loads are complete (including failed ones)
+      loaderEl.style.opacity = '0';
+      setTimeout(() => { loaderEl.style.display = 'none'; }, 500);
   } 
 }
 
@@ -477,23 +440,20 @@ function checkScroll() {
 /* --- INITIALIZATION --- */
 window.addEventListener('DOMContentLoaded', () => {
   
-  // Set total sources to track for full load
   LOADING_COUNT = SOURCES.news.length + SOURCES.video.length; 
   updateStatus(); 
 
   // 1. Fetch News First (Priority)
   SOURCES.news.forEach((src, index) => {
-    // Stagger news fetch slightly to avoid overwhelming the proxy
     setTimeout(() => fetchNews(src), index * 200); 
   });
 
   // 2. Fetch Videos Second (Lower Priority)
   setTimeout(() => {
     SOURCES.video.forEach((src, index) => {
-      // Stagger video fetch slightly
       setTimeout(() => fetchVideo(src), index * 250); 
     });
-  }, 1000); // 1 second delay after starting news fetch
+  }, 1000); 
 
   window.addEventListener('scroll', checkScroll);
 });
