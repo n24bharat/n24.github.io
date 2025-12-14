@@ -61,7 +61,7 @@
     /* --- LAYOUT --- */
     main { max-width: 960px; margin: 0 auto; padding: 20px 15px; }
     
-    /* FIX: Hiding content only until the FIRST successful render to prevent flicker, but showing immediately after. */
+    /* FIX: Hiding content only until the first successful render to prevent flicker. */
     #feed-stream {
       display: flex;
       flex-direction: column;
@@ -186,7 +186,7 @@
 
 <script>
 /**
- * SOURCE CONFIGURATION 
+ * SOURCE CONFIGURATION (Restored to High Volume List)
  */
 const SOURCES = {
   news: [
@@ -213,14 +213,14 @@ const SOURCES = {
   ]
 };
 
-// FIX: Reverting to a single, generally reliable JSON proxy for all XML/RSS content.
+// FIX: Using a single, reliable JSON proxy for all XML/RSS content.
 const PROXY_URL = "https://api.allorigins.win/get?url=";
 
 
 let FEED_ITEMS = [];
 let LOADING_COUNT = 0;
 let lastRenderedCount = 0; 
-let INITIAL_RENDER_COMPLETE = false; // New flag to control the soft flicker fix
+let INITIAL_RENDERED = false; // Flag to control the initial smooth display
 
 // *** Infinite Scroll Variables ***
 let DISPLAY_LIMIT = 20; 
@@ -230,16 +230,19 @@ const INCREMENT_STEP = 15;
 /* --- DATA FETCHING FUNCTIONS --- */
 
 async function fetchNews(source) {
+  // Google News RSS link for the specified source
   const rssUrl = `https://news.google.com/rss/search?q=${source.url}&hl=hi&gl=IN&ceid=IN:hi`;
   await fetchAndParse(rssUrl, source.name, 'news');
 }
 
 async function fetchVideo(source) {
+  // YouTube RSS link
   const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.id}`;
   await fetchAndParse(rssUrl, source.name, 'video');
 }
 
 async function fetchAndParse(url, sourceName, type) {
+  // Increment count outside try block
   LOADING_COUNT++;
   updateStatus();
 
@@ -258,6 +261,7 @@ async function fetchAndParse(url, sourceName, type) {
     if (xml.querySelector("parsererror")) throw new Error("XML Parse Error");
 
     const entries = xml.querySelectorAll("item, entry");
+    let newItemsAdded = false;
 
     entries.forEach(entry => {
       const title = entry.querySelector("title")?.textContent || "";
@@ -274,7 +278,7 @@ async function fetchAndParse(url, sourceName, type) {
         
         let vidId = null;
         
-        // Robust Fallback: Extract ID from the link (FIX for preview)
+        // FIX: Reliable Video ID extraction from the link
         if (link) {
              // Regex to capture the ID from /watch?v=, /youtu.be/ or /embed/
             const match = link.match(/(?:v=|youtu\.be\/|embed\/)([^&?"]+)/);
@@ -292,7 +296,7 @@ async function fetchAndParse(url, sourceName, type) {
         }
         
       } else {
-        // News Link Cleaning
+        // News Link Cleaning (for Google News RSS)
         link = entry.querySelector("link")?.textContent;
         const match = link.match(/url=(.+?)\&/);
         if (match) link = decodeURIComponent(match[1]);
@@ -312,39 +316,45 @@ async function fetchAndParse(url, sourceName, type) {
         thumb: thumb,
         snippet: snippet
       });
+      newItemsAdded = true;
     });
+
+    // FIX: Render immediately if items were added to prevent the stuck feeling
+    if (newItemsAdded) {
+        FEED_ITEMS.sort((a, b) => b.date - a.date);
+        
+        // Only run this complex clearing/re-rendering logic once at the very start
+        if (!INITIAL_RENDERED) {
+            document.getElementById("feed-stream").innerHTML = ''; 
+            lastRenderedCount = 0; 
+            document.querySelector('main').classList.add('loaded'); // Show content
+            INITIAL_RENDERED = true;
+        }
+        // Always render the latest batch
+        render(); 
+    }
+
   } catch (e) {
     console.warn(`Failed to load ${sourceName} (${type}): ${e.message}`);
   } finally {
-    // FIX: Decrement count and check render status in FINALLY block.
+    // Decrement count and update status
     LOADING_COUNT--;
-    checkAndInitialRender(); 
+    updateStatus(); 
+    
+    // Final render once all fetching is complete, to catch any stragglers
+    if (LOADING_COUNT === 0) {
+        FEED_ITEMS.sort((a, b) => b.date - a.date);
+        render(); // Final check
+        
+        // Hide loader definitively
+        const loaderEl = document.getElementById('loader');
+        loaderEl.style.opacity = '0';
+        setTimeout(() => { loaderEl.style.display = 'none'; }, 500);
+    }
   }
 }
 
 /* --- RENDERING & UTILITY --- */
-
-function checkAndInitialRender() {
-    updateStatus();
-
-    // Check if enough data is loaded or if all loading is complete
-    if (FEED_ITEMS.length >= DISPLAY_LIMIT || LOADING_COUNT === 0) {
-        
-        // Only run this block once to handle the initial render
-        if (!INITIAL_RENDER_COMPLETE) {
-            // Sort, render first batch, and show content
-            FEED_ITEMS.sort((a, b) => b.date - a.date);
-            document.getElementById("feed-stream").innerHTML = ''; 
-            lastRenderedCount = 0; 
-            render(); 
-            
-            // FIX: Show content after the first render to stop flickering 
-            document.querySelector('main').classList.add('loaded'); 
-            INITIAL_RENDER_COMPLETE = true;
-        }
-    }
-}
-
 
 function createCardHtml(item) {
     let mediaHtml = '';
@@ -381,12 +391,15 @@ function createCardHtml(item) {
 function render() {
   const container = document.getElementById("feed-stream");
   
+  // Only render up to the current limit
   const totalItemsToDisplay = Math.min(FEED_ITEMS.length, DISPLAY_LIMIT);
 
+  // If nothing new to display, stop.
   if (totalItemsToDisplay <= lastRenderedCount) return; 
   
   const fragment = document.createDocumentFragment();
   
+  // Loop starts from the last rendered item, only adding new ones
   for (let i = lastRenderedCount; i < totalItemsToDisplay; i++) {
     const item = FEED_ITEMS[i];
     fragment.appendChild(createCardHtml(item));
@@ -394,13 +407,6 @@ function render() {
   
   container.appendChild(fragment);
   lastRenderedCount = totalItemsToDisplay; 
-  
-  const loaderEl = document.getElementById('loader');
-  if(LOADING_COUNT === 0) {
-      // Hide loader only when ALL loads are complete (including failed ones)
-      loaderEl.style.opacity = '0';
-      setTimeout(() => { loaderEl.style.display = 'none'; }, 500);
-  } 
 }
 
 function updateStatus() {
