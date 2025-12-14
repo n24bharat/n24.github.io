@@ -191,8 +191,8 @@
   
   <div class="header-controls">
     <select id="time-filter" onchange="handleTimePeriodChange(this)" class="status-badge">
+        <option value="24h" selected>Latest 24 Hours</option>
         <option value="7d">Latest 1 Week</option>
-        <option value="24h">Latest 24 Hours</option>
         <option value="all">All Time</option>
     </select>
     <div class="status-badge" id="conn-status">Initializing...</div>
@@ -251,10 +251,10 @@ const PROXY_URL = "https://api.allorigins.win/get?url=";
 
 let FEED_ITEMS = [];    // Holds ALL fetched content (Raw data)
 let RENDER_ITEMS = [];  // Holds Filtered and Sorted content for display
-let CURRENT_TIME_PERIOD = '7d'; // Default to 1 week
+let CURRENT_TIME_PERIOD = '24h'; // FIX: Default to 24 hours
 let LOADING_COUNT = 0;
 let lastRenderedCount = 0; 
-let INITIAL_RENDERED = false; // Flag to control the initial smooth display
+let INITIAL_RENDERED = false; 
 
 // *** Infinite Scroll Variables ***
 let DISPLAY_LIMIT = 20; 
@@ -275,7 +275,7 @@ async function fetchVideo(source) {
 
 async function fetchAndParse(url, sourceName, type) {
   LOADING_COUNT++;
-  updateStatus(); // Update status before fetch
+  updateStatus(); 
 
   try {
     // 1. Fetch JSON wrapper from proxy
@@ -286,6 +286,11 @@ async function fetchAndParse(url, sourceName, type) {
     if (!data || !data.contents) throw new Error("Proxy returned empty content.");
     const text = data.contents;
     
+    // FIX: Check if the content is likely an HTML error page from the proxy.
+    if (text.trim().startsWith("<html")) {
+         throw new Error("Proxy returned an HTML error page instead of content.");
+    }
+
     // 2. Parse XML content
     const parser = new DOMParser();
     const xml = parser.parseFromString(text, "text/xml");
@@ -308,7 +313,8 @@ async function fetchAndParse(url, sourceName, type) {
         let vidId = null;
         
         if (link) {
-            const match = link.match(/(?:v=|youtu\.be\/|embed\/)([^&?"]+)/);
+            // FIX: Updated Regex to handle YouTube Shorts links (shorts/ID)
+            const match = link.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([^&?"]+)/);
             if (match) {
                 vidId = match[1];
             }
@@ -334,7 +340,6 @@ async function fetchAndParse(url, sourceName, type) {
         source: sourceName,
         title: title,
         link: link,
-        // FIX: Creating Date object carefully
         date: new Date(pubDate),
         type: type,
         thumb: thumb,
@@ -343,13 +348,11 @@ async function fetchAndParse(url, sourceName, type) {
       newItemsAdded = true;
     });
 
-    // FIX: Render immediately if items were added to prevent the stuck feeling
     if (newItemsAdded) {
-        // Apply filter and sort all items
         filterAndSortItems(); 
         
         if (!INITIAL_RENDERED) {
-            document.querySelector('main').classList.add('loaded'); // Show content
+            document.querySelector('main').classList.add('loaded');
             INITIAL_RENDERED = true;
             
             // FIX: Hide the loader immediately upon first successful content rendering
@@ -364,9 +367,9 @@ async function fetchAndParse(url, sourceName, type) {
     console.warn(`Failed to load ${sourceName} (${type}): ${e.message}`);
   } finally {
     LOADING_COUNT--;
-    updateStatus(); // Update status after fetch
+    updateStatus(); 
     
-    // Fallback: If all fetches are complete and nothing rendered, show error message
+    // Fallback: If all fetches are complete and nothing rendered
     if (LOADING_COUNT === 0 && !INITIAL_RENDERED) {
         document.getElementById("feed-stream").innerHTML = '<div style="text-align: center; padding: 50px; color: var(--gray);">Failed to load any reports. Please check your network or try again later.</div>';
         document.querySelector('main').classList.add('loaded');
@@ -380,7 +383,6 @@ async function fetchAndParse(url, sourceName, type) {
 
 /* --- FILTERING & RENDERING --- */
 
-// NEW: Function to handle filter change from the select box
 function handleTimePeriodChange(selectElement) {
     CURRENT_TIME_PERIOD = selectElement.value;
     filterAndSortItems();
@@ -388,7 +390,6 @@ function handleTimePeriodChange(selectElement) {
     updateStatus(); 
 }
 
-// NEW: Core function to filter and sort the full list
 function filterAndSortItems() {
     let cutoff = 0;
     
@@ -399,21 +400,17 @@ function filterAndSortItems() {
     }
 
     if (cutoff > 0) {
-        // Filter out items older than the cutoff time
         RENDER_ITEMS = FEED_ITEMS.filter(item => item.date.getTime() >= cutoff);
     } else {
-        // 'all' time: use all fetched items
         RENDER_ITEMS = [...FEED_ITEMS];
     }
     
-    // Sort all relevant items by date (newest first)
     RENDER_ITEMS.sort((a, b) => b.date - a.date);
 
-    // Reset rendering state for the new filtered list
     const container = document.getElementById("feed-stream");
     if(container) container.innerHTML = '';
     lastRenderedCount = 0;
-    DISPLAY_LIMIT = 20; // Reset limit for a fresh render
+    DISPLAY_LIMIT = 20;
 }
 
 function createCardHtml(item) {
@@ -451,15 +448,12 @@ function createCardHtml(item) {
 function render() {
   const container = document.getElementById("feed-stream");
   
-  // Only render up to the current limit, using RENDER_ITEMS
   const totalItemsToDisplay = Math.min(RENDER_ITEMS.length, DISPLAY_LIMIT);
 
-  // If nothing new to display, stop.
   if (totalItemsToDisplay <= lastRenderedCount) return; 
   
   const fragment = document.createDocumentFragment();
   
-  // Loop starts from the last rendered item, only adding new ones
   for (let i = lastRenderedCount; i < totalItemsToDisplay; i++) {
     const item = RENDER_ITEMS[i];
     fragment.appendChild(createCardHtml(item));
@@ -473,25 +467,22 @@ function updateStatus() {
   const el = document.getElementById("conn-status");
   
   if (LOADING_COUNT > 0) {
-    el.innerText = `Updating... (${LOADING_COUNT} active)`;
+    // FIX: Show simple updating status
+    el.innerText = `Updating... (${LOADING_COUNT})`; 
     el.style.backgroundColor = "#fff7ed";
   } else {
-    // Show total filtered items
+    // FIX: Show clean Live status when all fetches are complete
     el.innerText = `Live | ${RENDER_ITEMS.length} Reports`; 
     el.style.backgroundColor = "#dcfce7";
   }
 }
 
-// FIX: Robust timeAgo function
 function timeAgo(date) {
-  // Check if the date object is valid
   if (isNaN(date.getTime())) return "Unknown Date"; 
 
   const seconds = Math.floor((new Date() - date) / 1000);
   
-  // If date is too far in the past (more than 30 days) to prevent the "14724h ago" error
   if (seconds > (30 * 24 * 3600)) {
-    // Show the date in a readable format
     return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
@@ -511,7 +502,6 @@ function checkScroll() {
   const scrollTop = document.documentElement.scrollTop;
   const clientHeight = document.documentElement.clientHeight;
   
-  // Check against RENDER_ITEMS length
   if (scrollTop + clientHeight >= scrollHeight - 500 && DISPLAY_LIMIT < RENDER_ITEMS.length) {
     DISPLAY_LIMIT += INCREMENT_STEP;
     render();
@@ -524,7 +514,10 @@ window.addEventListener('DOMContentLoaded', () => {
   
   LOADING_COUNT = SOURCES.news.length + SOURCES.video.length; 
   updateStatus(); 
-  
+
+  // Initialize filter and render based on the default '24h' setting
+  filterAndSortItems(); 
+
   // 1. Fetch News First (Priority for initial content visibility)
   SOURCES.news.forEach((src, index) => {
     setTimeout(() => fetchNews(src), index * 200); 
