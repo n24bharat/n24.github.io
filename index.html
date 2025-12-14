@@ -217,6 +217,7 @@ const SOURCES = {
     { name: "The Quint Hindi", url: "site:hindi.thequint.com" },
     { name: "BBC News Hindi", url: "site:bbc.com/hindi" },
     { name: "DW Hindi", url: "site:dw.com/hi" } 
+    // Removed: Scroll.in, Article 14, The News Minute
   ],
   video: [
     { name: "Ravish Kumar", id: "UC0yXUUIaPVAqZLgRjvtMftw" },
@@ -226,11 +227,12 @@ const SOURCES = {
     { name: "News24 (Manak/Sandeep)", id: "UCnu4tD50k_k9y6pI2xT9lQA" },
     { name: "The Lallantop", id: "UCx8Z14PpntdaxCt2hakbqlQ" },
     { name: "Bolta Hindustan", id: "UCC5o5iCgM4V2rM2vYwJ2rEQ" },
+    // Removed: Shyam Meera Singh
     { name: "Red Mike", id: "UCn3a70Dq3o5WGe5JKdC7YHQ" },
     { name: "Punya Prasun Bajpai", id: "UCXCG3leC3eHChlU2OPWMk_A" },
     { name: "Deshbhakt (Akash)", id: "UCi82q8cZfXz7g3yL-6tG27A" },
-    { name: "Satya Hindi (Video)", id: "UC3N0dJm-w1l_S8_d-eNl73A" }, // @SatyaHindi
-    { name: "Kapil Sibal", id: "UCY-i892p3fQ59i5lK3yR-4A" } // @dilsewithkapilsibal
+    { name: "Satya Hindi (Video)", id: "UC3N0dJm-w1l_S8_d-eNl73A" },
+    { name: "Kapil Sibal", id: "UCY-i892p3fQ59i5lK3yR-4A" }
   ]
 };
 
@@ -239,10 +241,13 @@ const PROXY_URL = "https://corsproxy.io/?url=";
 
 let FEED_ITEMS = [];
 let LOADING_COUNT = 0;
+// *** New variable to track the number of items currently visible in the DOM ***
+let lastRenderedCount = 0; 
 
 // *** Infinite Scroll Variables ***
 let DISPLAY_LIMIT = 20; // Initial number of items to display
 const INCREMENT_STEP = 15; // Number of items to add on scroll
+let isInitialRender = true; // Flag for the first render
 
 /* --- DATA FETCHING --- */
 
@@ -311,25 +316,26 @@ async function fetchAndParse(url, sourceName, type) {
     LOADING_COUNT--;
     updateStatus();
     
-    // *** FLICKERING FIX: Only render when all fetches are complete. ***
+    // *** FLICKERING FIX LOGIC ***
+    // 1. Only perform the first sort/render when all data is in.
     if (LOADING_COUNT === 0) {
+      // Sort all items before initial render
+      FEED_ITEMS.sort((a, b) => b.date - a.date);
+      // Perform the initial render of the first 20 items
       render(); 
+    } else if (isInitialRender) {
+      // Small optimization: show a fast preview if data comes in very early, but still only the first 20
+      if (FEED_ITEMS.length >= DISPLAY_LIMIT) {
+          FEED_ITEMS.sort((a, b) => b.date - a.date);
+          render();
+          isInitialRender = false;
+      }
     }
   }
 }
 
 /* --- RENDERING --- */
-
-function render() {
-  const container = document.getElementById("feed-stream");
-  
-  // Sort by date (newest first)
-  FEED_ITEMS.sort((a, b) => b.date - a.date);
-  
-  // *** Apply the display limit for lazy loading ***
-  const displayItems = FEED_ITEMS.slice(0, DISPLAY_LIMIT);
-
-  container.innerHTML = displayItems.map(item => {
+function createCardHtml(item) {
     let mediaHtml = '';
     let badgeColor = item.type === 'video' ? '#ef4444' : '#2563eb';
     
@@ -341,31 +347,54 @@ function render() {
         </a>`;
     }
 
-    return `
-      <article class="news-card">
-        ${mediaHtml}
-        <div class="card-body">
-          <span class="source-tag" style="color:${badgeColor}">
-            ${item.type === 'video' ? '📺' : '📰'} ${item.source}
-          </span>
-          <h2 class="card-title">
-            <a href="${item.link}" target="_blank">${item.title}</a>
-          </h2>
-          ${item.snippet && item.type === 'news' ? `<p class="card-desc">${item.snippet}</p>` : ''}
-          <div class="card-meta">
-            <span>${timeAgo(item.date)}</span>
-            <span>Share ↗</span>
-          </div>
+    const article = document.createElement('article');
+    article.className = 'news-card';
+    article.innerHTML = `
+      ${mediaHtml}
+      <div class="card-body">
+        <span class="source-tag" style="color:${badgeColor}">
+          ${item.type === 'video' ? '📺' : '📰'} ${item.source}
+        </span>
+        <h2 class="card-title">
+          <a href="${item.link}" target="_blank">${item.title}</a>
+        </h2>
+        ${item.snippet && item.type === 'news' ? `<p class="card-desc">${item.snippet}</p>` : ''}
+        <div class="card-meta">
+          <span>${timeAgo(item.date)}</span>
+          <span>Share ↗</span>
         </div>
-      </article>
-    `;
-  }).join('');
+      </div>`;
+    return article;
+}
+
+function render() {
+  const container = document.getElementById("feed-stream");
+  
+  // Calculate the total number of items to display now
+  const totalItemsToDisplay = Math.min(FEED_ITEMS.length, DISPLAY_LIMIT);
+
+  // If we have nothing new to display, stop.
+  if (totalItemsToDisplay <= lastRenderedCount) {
+      return; 
+  }
+  
+  const fragment = document.createDocumentFragment();
+  
+  // Loop starts from the last rendered item, only adding new ones
+  for (let i = lastRenderedCount; i < totalItemsToDisplay; i++) {
+    const item = FEED_ITEMS[i];
+    fragment.appendChild(createCardHtml(item));
+  }
+  
+  // Append the new batch to the DOM once
+  container.appendChild(fragment);
+  // Update the count of what is now rendered
+  lastRenderedCount = totalItemsToDisplay; 
   
   const loaderEl = document.getElementById('loader');
   if(FEED_ITEMS.length > 0 && LOADING_COUNT === 0) {
       loaderEl.style.display = 'none';
   } else if (FEED_ITEMS.length > 0 && LOADING_COUNT > 0) {
-      // Keep loader visible if fetching is still ongoing but we have items
       loaderEl.style.display = 'block'; 
   }
 }
@@ -404,6 +433,7 @@ function checkScroll() {
   // AND if there is more content available in FEED_ITEMS than what is currently displayed
   if (scrollTop + clientHeight >= scrollHeight - 500 && DISPLAY_LIMIT < FEED_ITEMS.length) {
     DISPLAY_LIMIT += INCREMENT_STEP;
+    // Rerender will only add the difference due to the DOM append logic
     render();
   }
 }
@@ -423,13 +453,6 @@ window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => fetchVideo(src), index * 250);
     });
   }, 1000); // 1 second delay after starting news fetch
-
-  // *** FAST FIRST PAINT: Render after a short delay to show content quickly (20 items). ***
-  setTimeout(() => {
-      if (FEED_ITEMS.length > 0) {
-        render();
-      }
-  }, 1500); // Render 1.5s after DOMContentLoaded to show first batch
 
   // *** Attach scroll listener after initial load ***
   window.addEventListener('scroll', checkScroll);
