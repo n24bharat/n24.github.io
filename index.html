@@ -194,28 +194,24 @@ function isRecent(pubDate, period = CURRENT_PERIOD) {
   return true;
 }
 
-/* ---------- LOAD NEWS (Final Version with all checks) ---------- */
+/* ---------- LOAD NEWS ---------- */
 async function loadNews() {
   const container = document.getElementById("news");
   const loading = document.getElementById("loading-message");
   
-  // *** CRITICAL CHECK: ONLY PROCEED IF THE LOADING ELEMENT IS FOUND ***
-  if (!loading) {
-      console.error("The loading-message element is missing from the HTML.");
-      return; 
-  }
+  // This check will now only fail if the element is removed by accident
+  if (!loading) return console.error("Loading element is missing."); 
 
   container.innerHTML = "";
   loading.style.display = 'block'; // Show loading message
 
-  let articleCount = 0; // Track loaded articles
+  let articleCount = 0;
 
   for (const src of NEWS_SOURCES) {
     try {
       const res = await fetch(RSS_PROXY + encodeURIComponent(src.url));
       const data = await res.json();
       
-      // *** RSS PROXY ERROR CHECK ***
       if (data && data.items && data.status === 'ok') {
           data.items.forEach(item => {
             if(!isRecent(item.pubDate)) return;
@@ -241,23 +237,62 @@ async function loadNews() {
     }
   }
   
-  loading.style.display = 'none'; // Hide loading message after all sources are processed
+  loading.style.display = 'none'; // Hide loading message
 
-  // Display a message if no articles were loaded
   if (articleCount === 0) {
       container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--muted);">No news articles found for the selected period/language, or the RSS feeds failed to load.</div>`;
   }
 }
 
-
-/* ---------- LOAD VIDEOS (Placeholder for future implementation) ---------- */
+/* ---------- LOAD VIDEOS (Requires same error checking) ---------- */
 async function loadVideos() {
   const container = document.getElementById("videos");
-  // Implement loadVideos logic here, including getting and hiding the loading element
-  container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--muted);">Video loading logic pending.</div>`;
+  const loading = document.getElementById("loading-message");
+
+  if (!loading) return;
+  
+  container.innerHTML = "";
+  loading.style.display = 'block';
+
+  let videoCount = 0;
+
+  for (const ch of VIDEO_SOURCES) {
+    try {
+      const res = await fetch(RSS_PROXY + encodeURIComponent(ch.url));
+      const data = await res.json();
+
+      if (data && data.items && data.status === 'ok') {
+          data.items.forEach(v => {
+            if(!isRecent(v.pubDate)) return;
+
+            const hindi = isHindi(v.title);
+            if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
+
+            const article = document.createElement("article");
+            article.innerHTML = `
+              <h2><a href="${v.link}" target="_blank" rel="noopener noreferrer">▶ ${v.title}</a></h2>
+              <div class="meta">${ch.name} • ${new Date(v.pubDate).toDateString()}</div>
+            `;
+            container.appendChild(article);
+            videoCount++;
+          });
+      } else {
+        console.error(`RSS Proxy failed to return items for ${ch.name}. Status: ${data.status || 'Unknown'}`);
+      }
+    } catch(error) {
+       console.error(`Network or Parsing error for ${ch.name}:`, error);
+    }
+  }
+  
+  loading.style.display = 'none';
+
+  if (videoCount === 0) {
+      container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--muted);">No videos found for the selected period/language, or the feeds failed to load.</div>`;
+  }
 }
 
-/* ---------- LANGUAGE TOGGLE (Final Version) ---------- */
+
+/* ---------- LANGUAGE TOGGLE ---------- */
 function setLang(lang, button) {
   CURRENT_LANG = lang;
   
@@ -287,7 +322,7 @@ function setLang(lang, button) {
   }
 }
 
-/* ---------- PERIOD TOGGLE (Final Version) ---------- */
+/* ---------- PERIOD TOGGLE ---------- */
 function updatePeriod() {
   CURRENT_PERIOD = document.getElementById('period').value;
   const activeTab = document.querySelector('section.active').id;
@@ -298,7 +333,7 @@ function updatePeriod() {
   }
 }
 
-/* ---------- TAB SWITCH (Final Version) ---------- */
+/* ---------- TAB SWITCH ---------- */
 function switchTab(tab, button) {
   document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
@@ -329,15 +364,13 @@ function filterContent() {
   });
 }
 
-/* ---------- INITIAL LOAD - Ensure all defaults are set and content is loaded ---------- */
+/* ---------- INITIAL LOAD ---------- */
 document.addEventListener('DOMContentLoaded', (event) => {
     // 1. Set initial language
     setLang(CURRENT_LANG); 
     
-    // 2. Set initial tab (This will call loadNews)
+    // 2. Set initial tab (This calls loadNews, so we don't call it again)
     switchTab('news');
-    
-    // NOTE: loadNews() is called inside switchTab('news'), so we don't need to call it again here.
 });
 </script>
 
