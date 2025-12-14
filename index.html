@@ -168,21 +168,21 @@ const RSS_PROXY = "https://api.rss2json.com/v1/api.json?rss_url=";
 let CURRENT_LANG = "en";
 let CURRENT_PERIOD = "day"; // Default: 24 hours
 
-/* ---------- SOURCES (Verified) ---------- */
+/* ---------- SOURCES (Using Google News RSS Links) ---------- */
 const NEWS_SOURCES = [
-  { name: "The Wire", url: "https://thewire.in/rss" },
-  { name: "Scroll", url: "https://scroll.in/feed" },
-  { name: "Article 14", url: "https://article-14.com/rss" },
-  { name: "Newslaundry", url: "https://www.newslaundry.com/rss" }
+  { name: "The Wire (Google News)", url: "https://news.google.com/rss/search?q=%22The+Wire%22+in+india&hl=en-IN&gl=IN&ceid=IN:en" },
+  { name: "Scroll.in (Google News)", url: "https://news.google.com/rss/search?q=%22Scroll.in%22+in+india&hl=en-IN&gl=IN&ceid=IN:en" },
+  { name: "Article 14 (Google News)", url: "https://news.google.com/rss/search?q=%22Article+14%22+in+india&hl=en-IN&gl=IN&ceid=IN:en" },
+  { name: "Newslaundry (Google News)", url: "https://news.google.com/rss/search?q=%22Newslaundry%22+in+india&hl=en-IN&gl=IN&ceid=IN:en" }
 ];
 
-// YouTube links are ATOM feeds, but this proxy is generally able to convert them.
 const VIDEO_SOURCES = [
+  // Keeping the original YouTube feeds, which are usually fine with the JSON proxy
   { name: "Ravish Kumar", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UC0yXUUIaPVAqZLgRjvtMftw" },
   { name: "Ajit Anjum", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCkquFW943phrj5RbNqtqj4w" },
   { name: "Punya Prasun Bajpai", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCXCG3leC3eHChlU2OPWMk_A" }
 ];
-
+  
 /* ---------- HELPER FUNCTIONS ---------- */
 function isHindi(text) {
   return /[\u0900-\u097F]/.test(text);
