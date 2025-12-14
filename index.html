@@ -241,7 +241,6 @@ const PROXY_URL = "https://corsproxy.io/?url=";
 
 let FEED_ITEMS = [];
 let LOADING_COUNT = 0;
-// *** New variable to track the number of items currently visible in the DOM ***
 let lastRenderedCount = 0; 
 
 // *** Infinite Scroll Variables ***
@@ -287,8 +286,19 @@ async function fetchAndParse(url, sourceName, type) {
 
       if (type === 'video') {
         link = entry.querySelector("link[rel='alternate']")?.getAttribute('href') || entry.querySelector("link")?.textContent;
-        const vidId = entry.querySelector("videoId")?.textContent;
-        if(vidId) thumb = `https://i2.ytimg.com/vi/${vidId}/mqdefault.jpg`;
+        
+        // FIX: Look for 'yt:videoId' (namespaced) and 'videoId' (non-namespaced)
+        // 'yt:videoId' needs to be escaped in querySelector
+        const vidId = entry.querySelector("yt\\:videoId")?.textContent || entry.querySelector("videoId")?.textContent; 
+        
+        if(vidId) {
+            // Constructing the preferred medium-quality thumbnail URL
+            thumb = `https://i2.ytimg.com/vi/${vidId}/mqdefault.jpg`;
+        } else {
+            // Fallback: Check for <media:thumbnail> attribute URL
+            thumb = entry.querySelector("media\\:thumbnail")?.getAttribute('url');
+        }
+        
       } else {
         link = entry.querySelector("link")?.textContent;
         const match = link.match(/url=(.+?)\&/);
@@ -317,11 +327,10 @@ async function fetchAndParse(url, sourceName, type) {
     updateStatus();
     
     // *** FLICKERING FIX LOGIC ***
-    // 1. Only perform the first sort/render when all data is in.
     if (LOADING_COUNT === 0) {
       // Sort all items before initial render
       FEED_ITEMS.sort((a, b) => b.date - a.date);
-      // Perform the initial render of the first 20 items
+      // Perform the initial render of the first batch (or more if scroll happened)
       render(); 
     } else if (isInitialRender) {
       // Small optimization: show a fast preview if data comes in very early, but still only the first 20
@@ -339,7 +348,7 @@ function createCardHtml(item) {
     let mediaHtml = '';
     let badgeColor = item.type === 'video' ? '#ef4444' : '#2563eb';
     
-    if (item.type === 'video') {
+    if (item.type === 'video' && item.thumb) {
       mediaHtml = `
         <a href="${item.link}" target="_blank" class="video-wrapper">
           <img src="${item.thumb}" loading="lazy" alt="Video Thumbnail">
