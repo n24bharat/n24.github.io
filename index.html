@@ -201,6 +201,9 @@
   </div>
 </footer>
 
+<script data-goatcounter="https://n24.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+
 <script>
 /**
  * SOURCE CONFIGURATION 
@@ -212,10 +215,8 @@ const SOURCES = {
     { name: "Satya Hindi", url: "site:satyahindi.com" },
     { name: "Newslaundry", url: "site:newslaundry.com" },
     { name: "The Quint Hindi", url: "site:hindi.thequint.com" },
-    { name: "BBC News Hindi", url: "site:bbc.com/hindi" },
-    { name: "Scroll.in", url: "site:scroll.in" },
-    { name: "Article 14", url: "site:article-14.com" },
-    { name: "The News Minute", url: "site:thenewsminute.com" }
+    { name: "The News Minute", url: "site:thenewsminute.com" },
+    { name: "DW Hindi", url: "site:dw.com/hi" } 
   ],
   video: [
     { name: "Ravish Kumar", id: "UC0yXUUIaPVAqZLgRjvtMftw" },
@@ -225,28 +226,33 @@ const SOURCES = {
     { name: "News24 (Manak/Sandeep)", id: "UCnu4tD50k_k9y6pI2xT9lQA" },
     { name: "The Lallantop", id: "UCx8Z14PpntdaxCt2hakbqlQ" },
     { name: "Bolta Hindustan", id: "UCC5o5iCgM4V2rM2vYwJ2rEQ" },
-    { name: "Shyam Meera Singh", id: "UCuM4iXf7M7O4WvJ-gJ7z48A" },
     { name: "Red Mike", id: "UCn3a70Dq3o5WGe5JKdC7YHQ" },
     { name: "Punya Prasun Bajpai", id: "UCXCG3leC3eHChlU2OPWMk_A" },
-    { name: "Deshbhakt (Akash)", id: "UCi82q8cZfXz7g3yL-6tG27A" }
+    { name: "Deshbhakt (Akash)", id: "UCi82q8cZfXz7g3yL-6tG27A" },
+    // *** New additions as requested ***
+    { name: "Satya Hindi (Video)", id: "UC3N0dJm-w1l_S8_d-eNl73A" }, // @SatyaHindi
+    { name: "Kapil Sibal", id: "UCY-i892p3fQ59i5lK3yR-4A" } // @dilsewithkapilsibal
   ]
 };
 
-// *** FIX: Reverted to the previous, known working CORS proxy (corsproxy.io) ***
+// Reverted to the previous, known working CORS proxy
 const PROXY_URL = "https://corsproxy.io/?url=";
+
 let FEED_ITEMS = [];
 let LOADING_COUNT = 0;
+
+// *** Infinite Scroll Variables ***
+let DISPLAY_LIMIT = 20; // Initial number of items to display
+const INCREMENT_STEP = 15; // Number of items to add on scroll
 
 /* --- DATA FETCHING --- */
 
 async function fetchNews(source) {
-  // Use Google News RSS for news sites (most reliable aggregator for specific sites)
   const rssUrl = `https://news.google.com/rss/search?q=${source.url}&hl=hi&gl=IN&ceid=IN:hi`;
   await fetchAndParse(rssUrl, source.name, 'news');
 }
 
 async function fetchVideo(source) {
-  // YouTube Atom Feed URL
   const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.id}`;
   await fetchAndParse(rssUrl, source.name, 'video');
 }
@@ -256,7 +262,6 @@ async function fetchAndParse(url, sourceName, type) {
   updateStatus();
 
   try {
-    // Fetch via the chosen PROXY_URL
     const res = await fetch(PROXY_URL + encodeURIComponent(url));
     if (!res.ok) throw new Error(`Network Error: ${res.status}`);
     const text = await res.text();
@@ -265,7 +270,7 @@ async function fetchAndParse(url, sourceName, type) {
     const xml = parser.parseFromString(text, "text/xml");
     if (xml.querySelector("parsererror")) throw new Error("XML Parse Error");
 
-    const entries = xml.querySelectorAll("item, entry"); // Works for both RSS (item) and Atom (entry) feeds
+    const entries = xml.querySelectorAll("item, entry");
 
     entries.forEach(entry => {
       const title = entry.querySelector("title")?.textContent || "";
@@ -277,18 +282,14 @@ async function fetchAndParse(url, sourceName, type) {
       let snippet = "";
 
       if (type === 'video') {
-        // YouTube Atom feed uses link[rel='alternate'] or just link
         link = entry.querySelector("link[rel='alternate']")?.getAttribute('href') || entry.querySelector("link")?.textContent;
-        // YouTube Atom feed includes <yt:videoId>
         const vidId = entry.querySelector("videoId")?.textContent;
         if(vidId) thumb = `https://i2.ytimg.com/vi/${vidId}/mqdefault.jpg`;
       } else {
         link = entry.querySelector("link")?.textContent;
-        // Clean Google Redirect link
         const match = link.match(/url=(.+?)\&/);
         if (match) link = decodeURIComponent(match[1]);
         
-        // Clean description for news
         const rawDesc = entry.querySelector("description")?.textContent || "";
         const div = document.createElement("div");
         div.innerHTML = rawDesc;
@@ -310,7 +311,8 @@ async function fetchAndParse(url, sourceName, type) {
   } finally {
     LOADING_COUNT--;
     updateStatus();
-    render();
+    // Render on completion of any fetch to incrementally show results
+    render(); 
   }
 }
 
@@ -319,8 +321,11 @@ async function fetchAndParse(url, sourceName, type) {
 function render() {
   const container = document.getElementById("feed-stream");
   
+  // Sort by date (newest first)
   FEED_ITEMS.sort((a, b) => b.date - a.date);
-  const displayItems = FEED_ITEMS.slice(0, 50);
+  
+  // *** Apply the display limit for lazy loading ***
+  const displayItems = FEED_ITEMS.slice(0, DISPLAY_LIMIT);
 
   container.innerHTML = displayItems.map(item => {
     let mediaHtml = '';
@@ -386,6 +391,21 @@ function timeAgo(date) {
   return "Just now";
 }
 
+// *** Infinite Scroll Logic ***
+function checkScroll() {
+  const scrollHeight = document.documentElement.scrollHeight;
+  const scrollTop = document.documentElement.scrollTop;
+  const clientHeight = document.documentElement.clientHeight;
+  
+  // Check if user is near the bottom (e.g., within 500px of the end)
+  // AND if there is more content available in FEED_ITEMS than what is currently displayed
+  if (scrollTop + clientHeight >= scrollHeight - 500 && DISPLAY_LIMIT < FEED_ITEMS.length) {
+    DISPLAY_LIMIT += INCREMENT_STEP;
+    render();
+  }
+}
+
+
 /* --- INITIALIZATION --- */
 window.addEventListener('DOMContentLoaded', () => {
   
@@ -400,6 +420,9 @@ window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => fetchVideo(src), index * 250);
     });
   }, 1000); // 1 second delay after starting news fetch
+
+  // *** Attach scroll listener after initial load ***
+  window.addEventListener('scroll', checkScroll);
 });
 
 </script>
