@@ -24,7 +24,8 @@
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      /* Improved Font Fallback for Professional Look */
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
       margin: 0;
@@ -62,14 +63,13 @@
     main { max-width: 960px; margin: 0 auto; padding: 20px 15px; }
     
     /* FIX: Hiding main content until loaded to prevent flicker */
-    main:not(.loaded) #feed-stream { visibility: hidden; }
-    main.loaded #feed-stream { visibility: visible; }
-    
     #feed-stream {
       display: flex;
       flex-direction: column;
       gap: 24px; /* Increased gap */
     }
+    main:not(.loaded) #feed-stream { opacity: 0; }
+    main.loaded #feed-stream { opacity: 1; transition: opacity 0.5s ease-in; }
 
     /* --- CARD DESIGN --- */
     .news-card {
@@ -124,9 +124,9 @@
     /* VIDEO STYLES */
     .video-wrapper {
       position: relative;
-      padding-top: 56.25%; /* 16:9 */
+      padding-top: 56.25%; /* 16:9 Aspect Ratio */
       background: #111;
-      display: block; /* Ensure it takes full width */
+      display: block;
     }
     .video-wrapper img {
       position: absolute;
@@ -218,7 +218,6 @@
 <script>
 /**
  * SOURCE CONFIGURATION 
- * (List of news sites and YouTube channels)
  */
 const SOURCES = {
   news: [
@@ -228,7 +227,6 @@ const SOURCES = {
     { name: "The Quint Hindi", url: "site:hindi.thequint.com" },
     { name: "BBC News Hindi", url: "site:bbc.com/hindi" },
     { name: "DW Hindi", url: "site:dw.com/hi" } 
-    // Removed: Scroll.in, Article 14, The News Minute
   ],
   video: [
     { name: "Ravish Kumar", id: "UC0yXUUIaPVAqZLgRjvtMftw" },
@@ -246,37 +244,30 @@ const SOURCES = {
   ]
 };
 
-// FIX: Switched to a more reliable proxy to fix 404 errors.
-const PROXY_URL = "https://api.allorigins.win/get?url=";
+// FIX: Switched to a reliable dedicated RSS-to-JSON proxy for videos to fix 404.
+const NEWS_PROXY_URL = "https://api.allorigins.win/get?url=";
+const VIDEO_PROXY_URL = "https://api.rss2json.com/v1/api.json?rss_url=";
+
 
 let FEED_ITEMS = [];
 let LOADING_COUNT = 0;
 let lastRenderedCount = 0; 
 
 // *** Infinite Scroll Variables ***
-let DISPLAY_LIMIT = 20; // Initial number of items to display
-const INCREMENT_STEP = 15; // Number of items to add on scroll
+let DISPLAY_LIMIT = 20; 
+const INCREMENT_STEP = 15; 
 
 
-/* --- DATA FETCHING --- */
+/* --- DATA FETCHING FUNCTIONS --- */
 
+// Fetches Google News RSS (XML), uses allorigins proxy
 async function fetchNews(source) {
   const rssUrl = `https://news.google.com/rss/search?q=${source.url}&hl=hi&gl=IN&ceid=IN:hi`;
-  await fetchAndParse(rssUrl, source.name, 'news');
-}
-
-async function fetchVideo(source) {
-  const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.id}`;
-  await fetchAndParse(rssUrl, source.name, 'video');
-}
-
-async function fetchAndParse(url, sourceName, type) {
+  
   LOADING_COUNT++;
-  updateStatus();
 
   try {
-    // FIX: Handling JSON response from allorigins proxy
-    const res = await fetch(PROXY_URL + encodeURIComponent(url));
+    const res = await fetch(NEWS_PROXY_URL + encodeURIComponent(rssUrl));
     if (!res.ok) throw new Error(`Network Error: ${res.status}`);
     
     const data = await res.json();
@@ -295,89 +286,109 @@ async function fetchAndParse(url, sourceName, type) {
       if(title.length < 10) return;
 
       const pubDate = entry.querySelector("pubDate")?.textContent || entry.querySelector("published")?.textContent;
-      let link = "";
-      let thumb = "";
-      let snippet = "";
-
-      if (type === 'video') {
-        // 1. Get Link: YouTube feeds use Atom, the primary link is in an attribute
-        link = entry.querySelector("link[rel='alternate']")?.getAttribute('href') || entry.querySelector("link")?.textContent;
-        
-        // 2. Try to get namespaced yt:videoId
-        let vidId = entry.querySelector("yt\\:videoId")?.textContent || null; 
-        
-        // 3. Fallback: Check the GUID element (often contains the video ID)
-        if (!vidId) {
-            const guidText = entry.querySelector("guid")?.textContent;
-            if (guidText && guidText.startsWith("yt:video:")) {
-                vidId = guidText.substring("yt:video:".length);
-            }
-        }
-        
-        // 4. Robust Fallback: Extract ID from the link (most reliable method for YouTube RSS)
-        if (!vidId && link) {
-             // Regex to capture the ID from /watch?v=, /youtu.be/ or /embed/
-            const match = link.match(/(?:v=|youtu\.be\/|embed\/)([^&?"]+)/);
-            if (match) {
-                vidId = match[1];
-            }
-        }
-
-        if(vidId) {
-            // FIX: Use the stable video ID to construct the thumbnail URL
-            thumb = `https://i.ytimg.com/vi/${vidId}/mqdefault.jpg`;
-        } else {
-            // Last resort: Check for <media:group><media:thumbnail> attribute URL
-            thumb = entry.querySelector("media\\:group media\\:thumbnail")?.getAttribute('url');
-        }
-        
-      } else {
-        // News Link Cleaning (for Google News RSS)
-        link = entry.querySelector("link")?.textContent;
-        const match = link.match(/url=(.+?)\&/);
-        if (match) link = decodeURIComponent(match[1]);
-        
-        const rawDesc = entry.querySelector("description")?.textContent || "";
-        const div = document.createElement("div");
-        div.innerHTML = rawDesc;
-        snippet = div.innerText.substring(0, 160) + "...";
-      }
-
+      let link = entry.querySelector("link")?.textContent;
+      
+      const match = link.match(/url=(.+?)\&/);
+      if (match) link = decodeURIComponent(match[1]);
+      
+      const rawDesc = entry.querySelector("description")?.textContent || "";
+      const div = document.createElement("div");
+      div.innerHTML = rawDesc;
+      let snippet = div.innerText.substring(0, 160) + "...";
+      
       FEED_ITEMS.push({
-        source: sourceName,
+        source: source.name,
         title: title,
         link: link,
         date: new Date(pubDate),
-        type: type,
-        thumb: thumb,
+        type: 'news',
+        thumb: '',
         snippet: snippet
       });
     });
   } catch (e) {
-    console.warn(`Failed to load ${sourceName} (${type}): ${e.message}`);
+    console.warn(`Failed to load ${source.name} (news): ${e.message}`);
   } finally {
     LOADING_COUNT--;
-    updateStatus();
-    
-    // *** FLICKERING FIX: Only sort and render once all data is loaded. ***
-    if (LOADING_COUNT === 0) {
-      FEED_ITEMS.sort((a, b) => b.date - a.date);
-      
-      // Clear container and render initial batch for stability
-      document.getElementById("feed-stream").innerHTML = ''; 
-      lastRenderedCount = 0; // Reset rendering count
-      document.querySelector('main').classList.add('loaded'); // Show content
-      render(); 
-    }
+    checkCompleteAndRender();
   }
 }
 
-/* --- RENDERING --- */
+// Fetches YouTube RSS, uses rss2json proxy (Fixes 404 and Video Preview)
+async function fetchVideo(source) {
+  const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.id}`;
+  
+  LOADING_COUNT++;
+
+  try {
+    const res = await fetch(VIDEO_PROXY_URL + encodeURIComponent(rssUrl));
+    if (!res.ok) throw new Error(`Network Error: ${res.status}`);
+    
+    const data = await res.json();
+    if (data.status !== 'ok') throw new Error(`RSS2JSON Error: ${data.message || 'Failed to fetch.'}`);
+
+    data.items.forEach(item => {
+      const title = item.title;
+      const link = item.link;
+      const pubDate = item.pubDate;
+
+      if(title.length < 10) return;
+
+      let vidId = null;
+      let thumb = null;
+      
+      // FIX: Reliable Video ID extraction from the link
+      const match = link.match(/(?:v=|youtu\.be\/|embed\/)([^&?"]+)/);
+      if (match) {
+        vidId = match[1];
+      }
+      
+      if(vidId) {
+        // FIX: Constructing the preferred medium-quality thumbnail URL
+        thumb = `https://i.ytimg.com/vi/${vidId}/mqdefault.jpg`;
+      }
+      
+      FEED_ITEMS.push({
+        source: source.name,
+        title: title,
+        link: link,
+        date: new Date(pubDate),
+        type: 'video',
+        thumb: thumb,
+        snippet: ''
+      });
+    });
+  } catch (e) {
+    console.warn(`Failed to load ${source.name} (video): ${e.message}`);
+  } finally {
+    LOADING_COUNT--;
+    checkCompleteAndRender(); 
+  }
+}
+
+
+/* --- RENDERING & UTILITY --- */
+
+function checkCompleteAndRender() {
+    updateStatus();
+
+    // Only proceed to final render when all fetching is complete
+    if (LOADING_COUNT === 0) {
+        FEED_ITEMS.sort((a, b) => b.date - a.date);
+        
+        // Anti-Flicker: Clear container and render initial batch for stability
+        const container = document.getElementById("feed-stream");
+        container.innerHTML = ''; 
+        lastRenderedCount = 0; 
+        document.querySelector('main').classList.add('loaded'); // Show content (CSS opacity transition)
+        render(); 
+    }
+}
+
 function createCardHtml(item) {
     let mediaHtml = '';
     let badgeColor = item.type === 'video' ? '#ef4444' : '#2563eb';
     
-    // Ensure we only show the video block if a thumbnail URL exists
     if (item.type === 'video' && item.thumb) {
       mediaHtml = `
         <a href="${item.link}" target="_blank" class="video-wrapper">
@@ -400,7 +411,7 @@ function createCardHtml(item) {
         ${item.snippet && item.type === 'news' ? `<p class="card-desc">${item.snippet}</p>` : ''}
         <div class="card-meta">
           <span>${timeAgo(item.date)}</span>
-          <span>Share ↗</span>
+          <span><a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(item.title)}&url=${encodeURIComponent(item.link)}" target="_blank" style="color:var(--gray); text-decoration:none;">Share ↗</a></span>
         </div>
       </div>`;
     return article;
@@ -409,51 +420,35 @@ function createCardHtml(item) {
 function render() {
   const container = document.getElementById("feed-stream");
   
-  // Calculate the total number of items to display now
   const totalItemsToDisplay = Math.min(FEED_ITEMS.length, DISPLAY_LIMIT);
 
-  // If we have nothing new to display, stop.
-  if (totalItemsToDisplay <= lastRenderedCount) {
-      return; 
-  }
+  if (totalItemsToDisplay <= lastRenderedCount) return; 
   
   const fragment = document.createDocumentFragment();
   
-  // Loop starts from the last rendered item, only adding new ones
   for (let i = lastRenderedCount; i < totalItemsToDisplay; i++) {
     const item = FEED_ITEMS[i];
     fragment.appendChild(createCardHtml(item));
   }
   
-  // Append the new batch to the DOM once
   container.appendChild(fragment);
-  // Update the count of what is now rendered
   lastRenderedCount = totalItemsToDisplay; 
   
   const loaderEl = document.getElementById('loader');
   if(FEED_ITEMS.length > 0 && LOADING_COUNT === 0) {
-      // Hide loader only when all items are loaded and some content is available
       loaderEl.style.display = 'none';
-  } else if (FEED_ITEMS.length > 0 && LOADING_COUNT > 0) {
-      // Keep loader visible only if content is actively loading and some data is available
-      loaderEl.style.display = 'block'; 
-  }
+  } 
 }
 
 function updateStatus() {
   const el = document.getElementById("conn-status");
-  const loaderEl = document.getElementById('loader');
-
+  
   if (LOADING_COUNT > 0) {
     el.innerText = `Updating... (${LOADING_COUNT} active)`;
     el.style.backgroundColor = "#fff7ed";
-    loaderEl.style.opacity = '1';
   } else {
     el.innerText = `Live | ${FEED_ITEMS.length} Reports`;
     el.style.backgroundColor = "#dcfce7";
-    // Fade out and hide the loader once everything is loaded
-    loaderEl.style.opacity = '0';
-    setTimeout(() => { if (LOADING_COUNT === 0) loaderEl.style.display = 'none'; }, 500);
   }
 }
 
@@ -472,11 +467,8 @@ function checkScroll() {
   const scrollTop = document.documentElement.scrollTop;
   const clientHeight = document.documentElement.clientHeight;
   
-  // Check if user is near the bottom (e.g., within 500px of the end)
-  // AND if there is more content available in FEED_ITEMS than what is currently displayed
   if (scrollTop + clientHeight >= scrollHeight - 500 && DISPLAY_LIMIT < FEED_ITEMS.length) {
     DISPLAY_LIMIT += INCREMENT_STEP;
-    // Rerender will only add the difference due to the DOM append logic
     render();
   }
 }
@@ -485,23 +477,24 @@ function checkScroll() {
 /* --- INITIALIZATION --- */
 window.addEventListener('DOMContentLoaded', () => {
   
-  // Total number of sources to track for loading
+  // Set total sources to track for full load
   LOADING_COUNT = SOURCES.news.length + SOURCES.video.length; 
-  updateStatus(); // Initial status: Updating...
+  updateStatus(); 
 
   // 1. Fetch News First (Priority)
   SOURCES.news.forEach((src, index) => {
-    setTimeout(() => fetchNews(src), index * 200);
+    // Stagger news fetch slightly to avoid overwhelming the proxy
+    setTimeout(() => fetchNews(src), index * 200); 
   });
 
   // 2. Fetch Videos Second (Lower Priority)
   setTimeout(() => {
     SOURCES.video.forEach((src, index) => {
-      setTimeout(() => fetchVideo(src), index * 250);
+      // Stagger video fetch slightly
+      setTimeout(() => fetchVideo(src), index * 250); 
     });
   }, 1000); // 1 second delay after starting news fetch
 
-  // *** Attach scroll listener after initial load ***
   window.addEventListener('scroll', checkScroll);
 });
 
