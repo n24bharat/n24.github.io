@@ -203,7 +203,8 @@
 
 <script>
 /**
- * SOURCE CONFIGURATION (Unchanged from previous update for stability)
+ * SOURCE CONFIGURATION 
+ * (List of news sites and YouTube channels)
  */
 const SOURCES = {
   news: [
@@ -231,21 +232,22 @@ const SOURCES = {
   ]
 };
 
-// Using a stable CORS proxy
-const PROXY_URL = "https://corsproxy.io/?url=";
+// *** FIX: Changed to a more reliable CORS proxy for YouTube feeds ***
+// Original: "https://corsproxy.io/?url="
+const PROXY_URL = "https://api.codetabs.dev/v1/proxy?url=";
 let FEED_ITEMS = [];
 let LOADING_COUNT = 0;
 
 /* --- DATA FETCHING --- */
 
 async function fetchNews(source) {
-  // Construct Google News RSS URL
+  // Use Google News RSS for news sites (most reliable aggregator for specific sites)
   const rssUrl = `https://news.google.com/rss/search?q=${source.url}&hl=hi&gl=IN&ceid=IN:hi`;
   await fetchAndParse(rssUrl, source.name, 'news');
 }
 
 async function fetchVideo(source) {
-  // Construct YouTube Atom URL
+  // YouTube Atom Feed URL
   const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.id}`;
   await fetchAndParse(rssUrl, source.name, 'video');
 }
@@ -255,15 +257,16 @@ async function fetchAndParse(url, sourceName, type) {
   updateStatus();
 
   try {
+    // Fetch via the chosen PROXY_URL
     const res = await fetch(PROXY_URL + encodeURIComponent(url));
-    if (!res.ok) throw new Error("Network");
+    if (!res.ok) throw new Error(`Network Error: ${res.status}`);
     const text = await res.text();
     
     const parser = new DOMParser();
     const xml = parser.parseFromString(text, "text/xml");
     if (xml.querySelector("parsererror")) throw new Error("XML Parse Error");
 
-    const entries = xml.querySelectorAll("item, entry");
+    const entries = xml.querySelectorAll("item, entry"); // Works for both RSS (item) and Atom (entry) feeds
 
     entries.forEach(entry => {
       const title = entry.querySelector("title")?.textContent || "";
@@ -275,14 +278,18 @@ async function fetchAndParse(url, sourceName, type) {
       let snippet = "";
 
       if (type === 'video') {
+        // YouTube Atom feed uses link[rel='alternate'] or just link
         link = entry.querySelector("link[rel='alternate']")?.getAttribute('href') || entry.querySelector("link")?.textContent;
+        // YouTube Atom feed includes <yt:videoId>
         const vidId = entry.querySelector("videoId")?.textContent;
         if(vidId) thumb = `https://i2.ytimg.com/vi/${vidId}/mqdefault.jpg`;
       } else {
         link = entry.querySelector("link")?.textContent;
+        // Clean Google Redirect link
         const match = link.match(/url=(.+?)\&/);
         if (match) link = decodeURIComponent(match[1]);
         
+        // Clean description for news
         const rawDesc = entry.querySelector("description")?.textContent || "";
         const div = document.createElement("div");
         div.innerHTML = rawDesc;
@@ -300,7 +307,7 @@ async function fetchAndParse(url, sourceName, type) {
       });
     });
   } catch (e) {
-    console.warn(`Skipped ${sourceName}: ${e.message}`);
+    console.warn(`Failed to load ${sourceName} (${type}): ${e.message}`);
   } finally {
     LOADING_COUNT--;
     updateStatus();
@@ -363,7 +370,6 @@ function updateStatus() {
   if (LOADING_COUNT > 0) {
     el.innerText = `Updating... (${LOADING_COUNT} active)`;
     el.style.backgroundColor = "#fff7ed";
-    // Using opacity for a subtle loading indicator feel
     loaderEl.style.opacity = '1';
   } else {
     el.innerText = `Live | ${FEED_ITEMS.length} Reports`;
