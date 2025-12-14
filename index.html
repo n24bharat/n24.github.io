@@ -213,7 +213,7 @@ const SOURCES = {
   ]
 };
 
-// FIX: Using a single, reliable JSON proxy for all XML/RSS content.
+// Using a single, reliable JSON proxy for all XML/RSS content.
 const PROXY_URL = "https://api.allorigins.win/get?url=";
 
 
@@ -329,6 +329,11 @@ async function fetchAndParse(url, sourceName, type) {
             lastRenderedCount = 0; 
             document.querySelector('main').classList.add('loaded'); // Show content
             INITIAL_RENDERED = true;
+            
+            // FIX: Hide the loader here immediately upon first successful content rendering
+            const loaderEl = document.getElementById('loader');
+            loaderEl.style.opacity = '0';
+            setTimeout(() => { loaderEl.style.display = 'none'; }, 500);
         }
         // Always render the latest batch
         render(); 
@@ -341,12 +346,11 @@ async function fetchAndParse(url, sourceName, type) {
     LOADING_COUNT--;
     updateStatus(); 
     
-    // Final render once all fetching is complete, to catch any stragglers
-    if (LOADING_COUNT === 0) {
-        FEED_ITEMS.sort((a, b) => b.date - a.date);
-        render(); // Final check
+    // Fallback: If all fetches are complete and nothing rendered, show error message
+    if (LOADING_COUNT === 0 && !INITIAL_RENDERED) {
+        document.getElementById("feed-stream").innerHTML = '<div style="text-align: center; padding: 50px; color: var(--gray);">Failed to load any reports. Please check your network or try again later.</div>';
+        document.querySelector('main').classList.add('loaded');
         
-        // Hide loader definitively
         const loaderEl = document.getElementById('loader');
         loaderEl.style.opacity = '0';
         setTimeout(() => { loaderEl.style.display = 'none'; }, 500);
@@ -416,17 +420,32 @@ function updateStatus() {
     el.innerText = `Updating... (${LOADING_COUNT} active)`;
     el.style.backgroundColor = "#fff7ed";
   } else {
+    // Only show "Live" once all fetches are complete
     el.innerText = `Live | ${FEED_ITEMS.length} Reports`;
     el.style.backgroundColor = "#dcfce7";
   }
 }
 
+// FIX: Robust timeAgo function
 function timeAgo(date) {
+  // Handle Invalid Date object
+  if (isNaN(date.getTime())) return "Unknown Date"; 
+
   const seconds = Math.floor((new Date() - date) / 1000);
+  
+  // If date is too far in the past (more than 30 days) to prevent the "14724h ago" error
+  if (seconds > (30 * 24 * 3600)) {
+    // Show the date in a readable format
+    return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
   let interval = seconds / 3600;
-  if (interval > 1) return Math.floor(interval) + "h ago";
+  if (interval >= 1) return Math.floor(interval) + "h ago";
+  
   interval = seconds / 60;
-  if (interval > 1) return Math.floor(interval) + "m ago";
+  if (interval >= 1) return Math.floor(interval) + "m ago";
+  
+  if (seconds > 10) return Math.floor(seconds) + "s ago";
   return "Just now";
 }
 
@@ -446,20 +465,23 @@ function checkScroll() {
 /* --- INITIALIZATION --- */
 window.addEventListener('DOMContentLoaded', () => {
   
+  // Set total sources to track
   LOADING_COUNT = SOURCES.news.length + SOURCES.video.length; 
   updateStatus(); 
 
-  // 1. Fetch News First (Priority)
+  // 1. Fetch News First (Priority for initial content visibility)
   SOURCES.news.forEach((src, index) => {
+    // Stagger news fetch slightly to avoid overwhelming the proxy
     setTimeout(() => fetchNews(src), index * 200); 
   });
 
   // 2. Fetch Videos Second (Lower Priority)
   setTimeout(() => {
     SOURCES.video.forEach((src, index) => {
+      // Stagger video fetch slightly
       setTimeout(() => fetchVideo(src), index * 250); 
     });
-  }, 1000); 
+  }, 1000); // 1 second delay after starting news fetch
 
   window.addEventListener('scroll', checkScroll);
 });
