@@ -212,31 +212,56 @@ async function loadNews() {
   }
 }
 
-/* ---------- LOAD VIDEOS ---------- */
-async function loadVideos() {
-  const container = document.getElementById("videos");
+/* ---------- LOAD NEWS (Updated for Error Checking) ---------- */
+async function loadNews() {
+  const container = document.getElementById("news");
+  const loading = document.getElementById("loading-message");
   container.innerHTML = "";
+  loading.style.display = 'block'; // Show loading message
 
-  for (const ch of VIDEO_SOURCES) {
-    const res = await fetch(RSS_PROXY + encodeURIComponent(ch.url));
-    const data = await res.json();
+  let articleCount = 0; // Track loaded articles
 
-    data.items.forEach(v => {
-      if(!isRecent(v.pubDate)) return;
+  for (const src of NEWS_SOURCES) {
+    try {
+      const res = await fetch(RSS_PROXY + encodeURIComponent(src.url));
+      const data = await res.json();
+      
+      // *** THE CRITICAL FIX IS HERE ***
+      if (data && data.items && data.status === 'ok') {
+          data.items.forEach(item => {
+            if(!isRecent(item.pubDate)) return;
 
-      const hindi = isHindi(v.title);
-      if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
+            const hindi = isHindi(item.title);
+            if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
 
-      const article = document.createElement("article");
-      article.innerHTML = `
-        <h2><a href="${v.link}" target="_blank">▶ ${v.title}</a></h2>
-        <div class="meta">${ch.name} • ${new Date(v.pubDate).toDateString()}</div>
-      `;
-      container.appendChild(article);
-    });
+            const article = document.createElement("article");
+            article.innerHTML = `
+              <h2><a href="${item.link}" target="_blank" rel="noopener noreferrer">${item.title}</a></h2>
+              <div class="meta">${src.name} • ${new Date(item.pubDate).toDateString()}</div>
+              <p>${item.description.replace(/<[^>]+>/g, "").slice(0, 220)}…</p>
+            `;
+            container.appendChild(article);
+            articleCount++;
+          });
+      } else {
+        // Log a more helpful message if the API returns an error status
+        console.error(`RSS Proxy failed to return items for ${src.name}. Status: ${data.status || 'Unknown'}`);
+      }
+
+    } catch(error) {
+      console.error(`Network or Parsing error for ${src.name}:`, error);
+    }
+  }
+  
+  loading.style.display = 'none'; // Hide loading message after all sources are processed
+
+  // Display a message if no articles were loaded
+  if (articleCount === 0) {
+      container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--muted);">No news articles found for the selected period/language, or the RSS feeds failed to load.</div>`;
   }
 }
 
+// NOTE: You should apply the same check (if (data && data.items && data.status === 'ok')) to the loadVideos function as well!
 /* ---------- LANGUAGE TOGGLE ---------- */
 function setLang(lang) {
   CURRENT_LANG = lang;
