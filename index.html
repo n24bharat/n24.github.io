@@ -285,12 +285,13 @@ async function fetchAndParse(url, sourceName, type) {
       let snippet = "";
 
       if (type === 'video') {
+        // 1. Get Link: YouTube feeds use Atom, the primary link is in an attribute
         link = entry.querySelector("link[rel='alternate']")?.getAttribute('href') || entry.querySelector("link")?.textContent;
         
-        // 1. Try to get namespaced yt:videoId or simple videoId
+        // 2. Try to get namespaced yt:videoId or simple videoId
         let vidId = entry.querySelector("yt\\:videoId")?.textContent || entry.querySelector("videoId")?.textContent; 
         
-        // 2. Robust Fallback: Extract ID from the link (most reliable method for YouTube RSS)
+        // 3. Robust Fallback: Extract ID from the link (most reliable method for YouTube RSS)
         if (!vidId && link) {
              // Regex to capture the 'v=' parameter from standard YouTube URL
             const match = link.match(/[?&]v=([^&]+)/);
@@ -337,9 +338,8 @@ async function fetchAndParse(url, sourceName, type) {
     // *** FLICKERING FIX: Only sort and render once all data is loaded. ***
     if (LOADING_COUNT === 0) {
       FEED_ITEMS.sort((a, b) => b.date - a.date);
-      // Clear the container before the initial render to ensure stability
-      document.getElementById("feed-stream").innerHTML = '';
-      lastRenderedCount = 0;
+      // Removed: document.getElementById("feed-stream").innerHTML = ''; to stop flicker
+      lastRenderedCount = 0; // Ensure we start rendering from the beginning
       render(); 
     }
   }
@@ -407,6 +407,7 @@ function render() {
   if(FEED_ITEMS.length > 0 && LOADING_COUNT === 0) {
       loaderEl.style.display = 'none';
   } else if (FEED_ITEMS.length > 0 && LOADING_COUNT > 0) {
+      // Keep loader visible only if content is actively loading and some data is available
       loaderEl.style.display = 'block'; 
   }
 }
@@ -422,7 +423,9 @@ function updateStatus() {
   } else {
     el.innerText = `Live | ${FEED_ITEMS.length} Reports`;
     el.style.backgroundColor = "#dcfce7";
+    // Fade out the loader once everything is loaded
     loaderEl.style.opacity = '0';
+    setTimeout(() => { if (LOADING_COUNT === 0) loaderEl.style.display = 'none'; }, 500);
   }
 }
 
