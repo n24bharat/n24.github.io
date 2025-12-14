@@ -186,32 +186,6 @@ function isRecent(pubDate, period = CURRENT_PERIOD) {
   return true;
 }
 
-/* ---------- LOAD NEWS ---------- */
-async function loadNews() {
-  const container = document.getElementById("news");
-  container.innerHTML = "";
-
-  for (const src of NEWS_SOURCES) {
-    const res = await fetch(RSS_PROXY + encodeURIComponent(src.url));
-    const data = await res.json();
-
-    data.items.forEach(item => {
-      if(!isRecent(item.pubDate)) return;
-
-      const hindi = isHindi(item.title);
-      if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
-
-      const article = document.createElement("article");
-      article.innerHTML = `
-        <h2><a href="${item.link}" target="_blank">${item.title}</a></h2>
-        <div class="meta">${src.name} • ${new Date(item.pubDate).toDateString()}</div>
-        <p>${item.description.replace(/<[^>]+>/g, "").slice(0, 220)}…</p>
-      `;
-      container.appendChild(article);
-    });
-  }
-}
-
 /* ---------- LOAD NEWS (Updated for Error Checking) ---------- */
 async function loadNews() {
   const container = document.getElementById("news");
@@ -303,9 +277,19 @@ function filterContent() {
   });
 }
 
-/* ---------- INITIAL LOAD ---------- */
-loadNews();
-loadVideos();
+/* ---------- INITIAL LOAD - Ensure all defaults are set and content is loaded ---------- */
+// Wrap all initial setup and content loading in a DOMContentLoaded listener.
+document.addEventListener('DOMContentLoaded', (event) => {
+    // 1. Set initial language (will also set button class and search placeholder)
+    // Note: The setLang function should handle the button if not passed.
+    setLang(CURRENT_LANG); 
+    
+    // 2. Set initial tab (redundant as HTML is correct, but safe)
+    switchTab('news');
+    
+    // 3. Load the initial news content (This is now guaranteed to run AFTER "loading-message" exists)
+    loadNews(); 
+});
 </script>
 
 </body>
