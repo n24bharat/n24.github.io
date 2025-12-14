@@ -218,17 +218,16 @@
 
 <script>
 /**
- * SOURCE CONFIGURATION (Updated News sources to use Direct RSS feeds)
+ * SOURCE CONFIGURATION (Reverted News sources to Google News search for speed and stability)
  */
 const SOURCES = {
   news: [
-    // FIX: Using direct publisher RSS feeds to avoid large Google News search responses
-    { name: "The Wire Hindi", url: "https://thewirehindi.com/feed/" },
-    { name: "Satya Hindi", url: "https://satyahindi.com/feed/" },
-    { name: "Newslaundry", url: "https://www.newslaundry.com/feed" }, 
-    { name: "The Quint Hindi", url: "https://hindi.thequint.com/rss/all" }, 
-    { name: "BBC News Hindi", url: "http://feeds.bbci.co.uk/hindi/rss.xml" }, 
-    { name: "DW Hindi", url: "https://rss.dw.com/xml/rss-hi-all" } 
+    { name: "The Wire Hindi", url: "site:thewirehindi.com" },
+    { name: "Satya Hindi", url: "site:satyahindi.com" },
+    { name: "Newslaundry", url: "site:newslaundry.com" },
+    { name: "The Quint Hindi", url: "site:hindi.thequint.com" },
+    { name: "BBC News Hindi", url: "site:bbc.com/hindi" },
+    { name: "DW Hindi", url: "site:dw.com/hi" } 
   ],
   video: [
     { name: "Ravish Kumar", id: "UC0yXUUIaPVAqZLgRjvtMftw" },
@@ -264,9 +263,10 @@ const INCREMENT_STEP = 15;
 
 /* --- DATA FETCHING FUNCTIONS --- */
 
-// FIX: fetchNews now uses the direct RSS URL provided in SOURCES
+// FIX: Reverted back to Google News RSS fetch
 async function fetchNews(source) {
-  await fetchAndParse(source.url, source.name, 'news');
+  const rssUrl = `https://news.google.com/rss/search?q=${source.url}&hl=hi&gl=IN&ceid=IN:hi`;
+  await fetchAndParse(rssUrl, source.name, 'news');
 }
 
 async function fetchVideo(source) {
@@ -279,7 +279,6 @@ async function fetchAndParse(url, sourceName, type) {
   updateStatus(); 
 
   try {
-    // 1. Fetch JSON wrapper from proxy
     const res = await fetch(PROXY_URL + encodeURIComponent(url));
     if (!res.ok) throw new Error(`Network Error: ${res.status}`);
     
@@ -287,22 +286,21 @@ async function fetchAndParse(url, sourceName, type) {
     if (!data || !data.contents) throw new Error("Proxy returned empty content.");
     const text = data.contents;
     
-    // 2. Parse XML content
+    // FIX: Robust check for valid XML root element and parser errors
     const parser = new DOMParser();
     const xml = parser.parseFromString(text, "text/xml");
     
-    // FIX: Robust check for valid XML root element and parser errors
     if (!xml.documentElement || xml.querySelector("parsererror")) {
-        throw new Error("XML Parse Error or empty XML document.");
+        // This is where most failures occur. Log it and skip.
+        throw new Error("XML Parse Error or empty/corrupted XML document from proxy.");
     }
 
-    // Use correct selectors based on feed type (item for standard RSS, entry for Atom/YouTube)
+    // Use correct selectors based on feed type (item for standard/Google RSS, entry for Atom/YouTube)
     const entries = xml.querySelectorAll("item, entry");
     let newItemsAdded = false;
 
     entries.forEach(entry => {
       const title = entry.querySelector("title")?.textContent || "";
-      // Skip items with very short titles (often junk/ads)
       if(title.length < 10) return; 
 
       const pubDate = entry.querySelector("pubDate")?.textContent || entry.querySelector("published")?.textContent;
@@ -312,12 +310,12 @@ async function fetchAndParse(url, sourceName, type) {
       let dateObject = new Date(pubDate);
 
       if (type === 'video') {
-        // YouTube/Atom feed specific link and media logic
+        // Video specific logic (YouTube/Atom feed)
         link = entry.querySelector("link[rel='alternate']")?.getAttribute('href') || entry.querySelector("link")?.textContent;
         let vidId = null;
         
         if (link) {
-            // FIX: Updated Regex to handle standard v=, youtu.be, embed, and shorts/ID
+            // Updated Regex to handle standard v=, youtu.be, embed, and shorts/ID
             const match = link.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([^&?"]+)/);
             if (match) {
                 vidId = match[1];
@@ -326,26 +324,24 @@ async function fetchAndParse(url, sourceName, type) {
         if(vidId) {
             thumb = `https://i.ytimg.com/vi/${vidId}/mqdefault.jpg`;
         } else {
-            // Last resort for older YouTube feeds
             thumb = entry.querySelector("media\\:group media\\:thumbnail")?.getAttribute('url') || entry.querySelector("media\\:thumbnail")?.getAttribute('url');
         }
         
       } else {
-        // Standard RSS feed link and description logic
+        // News specific logic (Google News RSS)
         link = entry.querySelector("link")?.textContent;
-        // Check for common link formatting issues and clean up if needed (less common with direct feeds)
-        const linkMatch = link.match(/url=(.+?)\&/);
-        if (linkMatch) link = decodeURIComponent(linkMatch[1]);
+        // FIX: Re-implement Google News link extraction logic
+        const match = link.match(/url=(.+?)\&/); 
+        if (match) link = decodeURIComponent(match[1]);
         
+        // FIX: Re-implement Google News snippet extraction logic
         const rawDesc = entry.querySelector("description")?.textContent || "";
         const div = document.createElement("div");
         div.innerHTML = rawDesc;
         snippet = div.innerText.substring(0, 160) + "...";
       }
       
-      // Filter out items with invalid dates (NaN) as they disrupt sorting/filtering
       if (isNaN(dateObject.getTime())) {
-          console.warn(`Skipping item from ${sourceName} due to invalid date.`);
           return;
       }
 
@@ -362,19 +358,16 @@ async function fetchAndParse(url, sourceName, type) {
     });
 
     if (newItemsAdded) {
-        // Re-filter and sort the ENTIRE list whenever new items are added
         filterAndSortItems(); 
         
         if (!INITIAL_RENDERED) {
             document.querySelector('main').classList.add('loaded');
             INITIAL_RENDERED = true;
             
-            // Hide the loader immediately upon first successful content rendering
             const loaderEl = document.getElementById('loader');
             loaderEl.style.opacity = '0';
             setTimeout(() => { loaderEl.style.display = 'none'; }, 500);
         }
-        // Render the newly filtered and sorted results
         render(); 
     }
 
@@ -415,17 +408,13 @@ function filterAndSortItems() {
     }
 
     if (cutoff > 0) {
-        // Filter: Keep only items newer than the cutoff
         RENDER_ITEMS = FEED_ITEMS.filter(item => item.date.getTime() >= cutoff);
     } else {
-        // 'all' time: use all fetched items
         RENDER_ITEMS = [...FEED_ITEMS];
     }
     
-    // Sort all relevant items by date (newest first)
     RENDER_ITEMS.sort((a, b) => b.date - a.date);
 
-    // Reset rendering state for the new filtered list
     const container = document.getElementById("feed-stream");
     if(container) container.innerHTML = '';
     lastRenderedCount = 0;
@@ -536,17 +525,15 @@ window.addEventListener('DOMContentLoaded', () => {
   // Initialize filter and render based on the default '24h' setting
   filterAndSortItems(); 
 
-  // 1. Fetch News First (Priority for initial content visibility)
-  SOURCES.news.forEach((src, index) => {
-    setTimeout(() => fetchNews(src), index * 200); 
+  // 1. Fetch News First (Concurrent)
+  SOURCES.news.forEach((src) => { 
+    fetchNews(src); 
   });
 
-  // 2. Fetch Videos Second (Lower Priority)
-  setTimeout(() => {
-    SOURCES.video.forEach((src, index) => {
-      setTimeout(() => fetchVideo(src), index * 250); 
-    });
-  }, 1000); 
+  // 2. Fetch Videos Second (Slightly Staggered to prioritize news rendering)
+  SOURCES.video.forEach((src, index) => {
+    setTimeout(() => fetchVideo(src), 500 + index * 100); 
+  });
 
   window.addEventListener('scroll', checkScroll);
 });
