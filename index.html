@@ -194,16 +194,15 @@ function isRecent(pubDate, period = CURRENT_PERIOD) {
   return true;
 }
 
-/* ---------- LOAD NEWS ---------- */
+/* ---------- LOAD NEWS (UPDATED FOR NEW PROXY) ---------- */
 async function loadNews() {
   const container = document.getElementById("news");
   const loading = document.getElementById("loading-message");
   
-  // Safety check to prevent the 'loading is null' error
   if (!loading) return console.error("Loading element is missing from HTML."); 
 
   container.innerHTML = "";
-  loading.style.display = 'block'; // Show loading message
+  loading.style.display = 'block';
 
   let articleCount = 0;
 
@@ -212,39 +211,54 @@ async function loadNews() {
       const res = await fetch(RSS_PROXY + encodeURIComponent(src.url));
       const data = await res.json();
       
-      if (data && data.items && data.status === 'ok') {
-          data.items.forEach(item => {
-            if(!isRecent(item.pubDate)) return;
+      // *** NEW CODE START ***
+      if (data && data.contents) {
+          // Parse the XML contents string into a DOM object
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(data.contents, "text/xml");
+          const items = xmlDoc.querySelectorAll("item");
+          
+          items.forEach(item => {
+            // Helper to get text content from an XML tag safely
+            const getText = (tag) => item.querySelector(tag)?.textContent || '';
 
-            const hindi = isHindi(item.title);
+            const title = getText("title");
+            const link = getText("link");
+            const pubDate = getText("pubDate");
+            const description = getText("description");
+
+            if(!isRecent(pubDate)) return;
+
+            const hindi = isHindi(title);
             if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
 
             const article = document.createElement("article");
             article.innerHTML = `
-              <h2><a href="${item.link}" target="_blank" rel="noopener noreferrer">${item.title}</a></h2>
-              <div class="meta">${src.name} • ${new Date(item.pubDate).toDateString()}</div>
-              <p>${item.description.replace(/<[^>]+>/g, "").slice(0, 220)}…</p>
+              <h2><a href="${link}" target="_blank" rel="noopener noreferrer">${title}</a></h2>
+              <div class="meta">${src.name} • ${new Date(pubDate).toDateString()}</div>
+              <p>${description.replace(/<[^>]+>/g, "").slice(0, 220)}…</p>
             `;
             container.appendChild(article);
             articleCount++;
           });
       } else {
-        console.error(`RSS Proxy failed to return items for ${src.name}. Status: ${data.status || 'Unknown'}`);
+        console.error(`RSS Proxy failed to return content for ${src.name}.`);
       }
+      // *** NEW CODE END ***
 
     } catch(error) {
       console.error(`Network or Parsing error for ${src.name}:`, error);
     }
   }
   
-  loading.style.display = 'none'; // Hide loading message
+  loading.style.display = 'none';
 
   if (articleCount === 0) {
       container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--muted);">No news articles found for the selected period/language, or the RSS feeds failed to load.</div>`;
   }
 }
 
-/* ---------- LOAD VIDEOS ---------- */
+/* ---------- LOAD VIDEOS (UPDATED FOR NEW PROXY) ---------- */
 async function loadVideos() {
   const container = document.getElementById("videos");
   const loading = document.getElementById("loading-message");
@@ -261,24 +275,39 @@ async function loadVideos() {
       const res = await fetch(RSS_PROXY + encodeURIComponent(ch.url));
       const data = await res.json();
 
-      if (data && data.items && data.status === 'ok') {
-          data.items.forEach(v => {
-            if(!isRecent(v.pubDate)) return;
+      // *** NEW CODE START ***
+      if (data && data.contents) {
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(data.contents, "text/xml");
+          // YouTube feeds use <entry> for videos
+          const items = xmlDoc.querySelectorAll("entry"); 
 
-            const hindi = isHindi(v.title);
+          items.forEach(v => {
+            const getText = (tag) => v.querySelector(tag)?.textContent || '';
+
+            const title = getText("title");
+            const link = v.querySelector("link")?.getAttribute('href') || '';
+            // YouTube uses <published> instead of <pubDate>
+            const pubDate = getText("published"); 
+            
+            if(!isRecent(pubDate)) return;
+
+            const hindi = isHindi(title);
             if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
 
             const article = document.createElement("article");
             article.innerHTML = `
-              <h2><a href="${v.link}" target="_blank" rel="noopener noreferrer">▶ ${v.title}</a></h2>
-              <div class="meta">${ch.name} • ${new Date(v.pubDate).toDateString()}</div>
+              <h2><a href="${link}" target="_blank" rel="noopener noreferrer">▶ ${title}</a></h2>
+              <div class="meta">${ch.name} • ${new Date(pubDate).toDateString()}</div>
             `;
             container.appendChild(article);
             videoCount++;
           });
       } else {
-        console.error(`RSS Proxy failed to return items for ${ch.name}. Status: ${data.status || 'Unknown'}`);
+        console.error(`RSS Proxy failed to return content for ${ch.name}.`);
       }
+      // *** NEW CODE END ***
+
     } catch(error) {
        console.error(`Network or Parsing error for ${ch.name}:`, error);
     }
@@ -290,7 +319,6 @@ async function loadVideos() {
       container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--muted);">No videos found for the selected period/language, or the feeds failed to load.</div>`;
   }
 }
-
 
 /* ---------- LANGUAGE TOGGLE ---------- */
 function setLang(lang, button) {
