@@ -246,7 +246,7 @@ let lastRenderedCount = 0;
 // *** Infinite Scroll Variables ***
 let DISPLAY_LIMIT = 20; // Initial number of items to display
 const INCREMENT_STEP = 15; // Number of items to add on scroll
-let isInitialRender = true; // Flag for the first render
+
 
 /* --- DATA FETCHING --- */
 
@@ -287,15 +287,23 @@ async function fetchAndParse(url, sourceName, type) {
       if (type === 'video') {
         link = entry.querySelector("link[rel='alternate']")?.getAttribute('href') || entry.querySelector("link")?.textContent;
         
-        // FIX: Look for 'yt:videoId' (namespaced) and 'videoId' (non-namespaced)
-        // 'yt:videoId' needs to be escaped in querySelector
-        const vidId = entry.querySelector("yt\\:videoId")?.textContent || entry.querySelector("videoId")?.textContent; 
+        // 1. Try to get namespaced yt:videoId or simple videoId
+        let vidId = entry.querySelector("yt\\:videoId")?.textContent || entry.querySelector("videoId")?.textContent; 
         
+        // 2. Robust Fallback: Extract ID from the link (most reliable method for YouTube RSS)
+        if (!vidId && link) {
+             // Regex to capture the 'v=' parameter from standard YouTube URL
+            const match = link.match(/[?&]v=([^&]+)/);
+            if (match) {
+                vidId = match[1];
+            }
+        }
+
         if(vidId) {
             // Constructing the preferred medium-quality thumbnail URL
             thumb = `https://i2.ytimg.com/vi/${vidId}/mqdefault.jpg`;
         } else {
-            // Fallback: Check for <media:thumbnail> attribute URL
+            // Last resort: Check for <media:thumbnail> attribute URL
             thumb = entry.querySelector("media\\:thumbnail")?.getAttribute('url');
         }
         
@@ -326,19 +334,13 @@ async function fetchAndParse(url, sourceName, type) {
     LOADING_COUNT--;
     updateStatus();
     
-    // *** FLICKERING FIX LOGIC ***
+    // *** FLICKERING FIX: Only sort and render once all data is loaded. ***
     if (LOADING_COUNT === 0) {
-      // Sort all items before initial render
       FEED_ITEMS.sort((a, b) => b.date - a.date);
-      // Perform the initial render of the first batch (or more if scroll happened)
+      // Clear the container before the initial render to ensure stability
+      document.getElementById("feed-stream").innerHTML = '';
+      lastRenderedCount = 0;
       render(); 
-    } else if (isInitialRender) {
-      // Small optimization: show a fast preview if data comes in very early, but still only the first 20
-      if (FEED_ITEMS.length >= DISPLAY_LIMIT) {
-          FEED_ITEMS.sort((a, b) => b.date - a.date);
-          render();
-          isInitialRender = false;
-      }
     }
   }
 }
@@ -348,6 +350,7 @@ function createCardHtml(item) {
     let mediaHtml = '';
     let badgeColor = item.type === 'video' ? '#ef4444' : '#2563eb';
     
+    // Ensure we only show the video block if a thumbnail URL exists
     if (item.type === 'video' && item.thumb) {
       mediaHtml = `
         <a href="${item.link}" target="_blank" class="video-wrapper">
