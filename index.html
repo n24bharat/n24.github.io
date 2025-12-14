@@ -159,20 +159,18 @@
 </main>
 
 <footer>
-  Public RSS sources • No tracking • Static site
+  Public RSS sources • No tracking • Static site • © 2025-2030 n24.in 
 </footer>
 
 <script>
-// *** 1. PROXY: Using the JSON proxy for simplicity and video support ***
-const RSS_PROXY = "https://api.rss2json.com/v1/api.json?rss_url=";
-// *** 2. DEFAULT LANGUAGE: Set Hindi as the default ***
-let CURRENT_LANG = "hi"; 
+// ---------- PROXY: Using AllOrigins as a reliable CORS proxy, we will now parse the XML it returns ----------
+const RSS_PROXY = "https://api.allorigins.win/get?url=";
+let CURRENT_LANG = "hi"; // Set Hindi as default language
 let CURRENT_PERIOD = "day"; // Default: 24 hours
 
-/* ---------- SOURCES (Switching to Google News Links for cleaner feed/proxy interaction) ---------- */
+/* ---------- SOURCES (Using Google News for reliability, and YouTube for videos) ---------- */
 const NEWS_SOURCES = [
-  // Using stable Google News RSS links. Note: These will primarily return English content
-  // unless you actively search for Hindi, but they are often cleaner for proxies.
+  // Using Google News RSS links for stability.
   { name: "The Wire (Google News)", url: "https://news.google.com/rss/search?q=%22The+Wire%22+in+india&hl=en-IN&gl=IN&ceid=IN:en" },
   { name: "Scroll.in (Google News)", url: "https://news.google.com/rss/search?q=%22Scroll.in%22+in+india&hl=en-IN&gl=IN&ceid=IN:en" },
   { name: "Article 14 (Google News)", url: "https://news.google.com/rss/search?q=%22Article+14%22+in+india&hl=en-IN&gl=IN&ceid=IN:en" },
@@ -186,8 +184,62 @@ const VIDEO_SOURCES = [
   { name: "Punya Prasun Bajpai", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCXCG3leC3eHChlU2OPWMk_A" }
 ];
 
+
+/* ---------- XML PARSER (ROBUST FUNCTION) ---------- */
+function parseXML(xmlString, isVideo) {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+    const items = [];
+
+    // Find all <item> (RSS) or <entry> (Atom/YouTube) elements
+    const entries = xmlDoc.querySelectorAll("item, entry"); 
+
+    entries.forEach(entry => {
+        let title = entry.querySelector("title")?.textContent || "No Title";
+        let pubDate = entry.querySelector("pubDate")?.textContent || entry.querySelector("published")?.textContent;
+        let description = entry.querySelector("description")?.textContent || "";
+        let link = "";
+
+        // 1. Get Link: YouTube feeds use Atom, the primary link is in an attribute
+        if (isVideo) {
+            // Find the <link> tag with rel="alternate" and extract its href
+            link = entry.querySelector("link[rel='alternate']")?.getAttribute('href') || entry.querySelector("link")?.textContent;
+        } 
+        
+        // 2. Get Link: Standard RSS feeds use <link> tag's text content
+        if (!link) {
+            link = entry.querySelector("link")?.textContent;
+        }
+
+        // 3. Clean Google News Link: The standard link in Google RSS is a redirect. We extract the true URL.
+        if (link && link.startsWith('https://news.google.com/rss/articles/')) {
+            try {
+                // The actual URL is encoded in the link text (which is the redirect URL)
+                const match = link.match(/url=(.+?)\&/);
+                if (match && match[1]) {
+                    link = decodeURIComponent(match[1]);
+                }
+            } catch (e) {
+                // If regex fails, use the original redirect link
+            }
+        }
+        
+        // Final cleanup and push
+        items.push({
+            title: title.trim(),
+            link: (link || "#").trim(),
+            pubDate: pubDate,
+            description: description
+        });
+    });
+
+    return items.filter(item => item.title && item.link !== '#');
+}
+
+
 /* ---------- HELPER FUNCTIONS ---------- */
 function isHindi(text) {
+  // Checks for characters in the Devanagari block
   return /[\u0900-\u097F]/.test(text);
 }
 
@@ -199,13 +251,12 @@ function isRecent(pubDate, period = CURRENT_PERIOD) {
   return true;
 }
 
-/* ---------- LOAD NEWS (JSON Proxy Logic) ---------- */
+
+/* ---------- LOAD NEWS ---------- */
 async function loadNews() {
   const container = document.getElementById("news");
   const loading = document.getElementById("loading-message");
   
-  if (!loading) return; 
-
   container.innerHTML = "";
   loading.style.display = 'block';
 
@@ -213,16 +264,19 @@ async function loadNews() {
 
   for (const src of NEWS_SOURCES) {
     try {
-      const res = await fetch(RSS_PROXY + encodeURIComponent(src.url));
+      const fetchUrl = RSS_PROXY + encodeURIComponent(src.url);
+      const res = await fetch(fetchUrl);
       const data = await res.json();
       
-      // CRITICAL CHECK: Ensure status is 'ok' AND items exist for JSON proxy
-      if (data && data.items && data.status === 'ok') {
-          data.items.forEach(item => {
+      if (data && data.contents) {
+          // Pass the raw XML content to our parser
+          const items = parseXML(data.contents, false); 
+
+          items.forEach(item => {
             if(!isRecent(item.pubDate)) return;
 
             const hindi = isHindi(item.title);
-            // News filter: Since these feeds are primarily English, selecting 'hi' will show few to no articles.
+            // Filter logic
             if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
 
             const article = document.createElement("article");
@@ -235,7 +289,7 @@ async function loadNews() {
             articleCount++;
           });
       } else {
-        console.error(`RSS Proxy failed to return items for ${src.name}. Status: ${data.status || 'Unknown'}`);
+        console.error(`RSS Proxy failed to return content for ${src.name}.`);
       }
 
     } catch(error) {
@@ -250,13 +304,11 @@ async function loadNews() {
   }
 }
 
-/* ---------- LOAD VIDEOS (JSON Proxy Logic) ---------- */
+/* ---------- LOAD VIDEOS ---------- */
 async function loadVideos() {
   const container = document.getElementById("videos");
   const loading = document.getElementById("loading-message");
 
-  if (!loading) return;
-  
   container.innerHTML = "";
   loading.style.display = 'block';
 
@@ -264,15 +316,18 @@ async function loadVideos() {
 
   for (const ch of VIDEO_SOURCES) {
     try {
-      const res = await fetch(RSS_PROXY + encodeURIComponent(ch.url));
+      const fetchUrl = RSS_PROXY + encodeURIComponent(ch.url);
+      const res = await fetch(fetchUrl);
       const data = await res.json();
 
-      if (data && data.items && data.status === 'ok') {
-          data.items.forEach(v => {
+      if (data && data.contents) {
+          // Pass the raw XML content to our parser
+          const items = parseXML(data.contents, true); 
+
+          items.forEach(v => {
             if(!isRecent(v.pubDate)) return;
 
             const hindi = isHindi(v.title);
-            // Video filter: Shows Hindi titles if CURRENT_LANG is 'hi', and English titles if 'en'.
             if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
 
             const article = document.createElement("article");
@@ -284,7 +339,7 @@ async function loadVideos() {
             videoCount++;
           });
       } else {
-        console.error(`RSS Proxy failed to return items for ${ch.name}. Status: ${data.status || 'Unknown'}`);
+        console.error(`RSS Proxy failed to return content for ${ch.name}.`);
       }
     } catch(error) {
        console.error(`Network or Parsing error for ${ch.name}:`, error);
@@ -299,7 +354,7 @@ async function loadVideos() {
 }
 
 
-/* ---------- LANGUAGE TOGGLE (UNCHANGED) ---------- */
+/* ---------- LANGUAGE TOGGLE ---------- */
 function setLang(lang, button) {
   CURRENT_LANG = lang;
   
@@ -329,7 +384,7 @@ function setLang(lang, button) {
   }
 }
 
-/* ---------- PERIOD TOGGLE (UNCHANGED) ---------- */
+/* ---------- PERIOD TOGGLE ---------- */
 function updatePeriod() {
   CURRENT_PERIOD = document.getElementById('period').value;
   const activeTab = document.querySelector('section.active').id;
@@ -340,8 +395,47 @@ function updatePeriod() {
   }
 }
 
-/* ---------- TAB SWITCH (UNCHANGED) ---------- */
+/* ---------- TAB SWITCH ---------- */
 function switchTab(tab, button) {
-  document.querySelectorAll("
+  document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+  document.getElementById(tab).classList.add("active");
+
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  
+  if (button) {
+    button.classList.add("active");
+  } else {
+    const defaultButton = document.querySelector(`nav button[data-tab="${tab}"]`);
+    if (defaultButton) {
+        defaultButton.classList.add("active");
+    }
+  }
+
+  if (tab === 'news') {
+    loadNews();
+  } else {
+    loadVideos();
+  }
+}
+
+/* ---------- SEARCH FILTER ---------- */
+function filterContent() {
+  const q = document.getElementById("search").value.toLowerCase();
+  document.querySelectorAll("article").forEach(a => {
+    a.style.display = a.innerText.toLowerCase().includes(q) ? "block" : "none";
+  });
+}
+
+/* ---------- INITIAL LOAD - Simplified to avoid double load ---------- */
+document.addEventListener('DOMContentLoaded', (event) => {
+    // 1. Set initial tab to 'news' and activate the button
+    switchTab('news');
+    
+    // 2. Set language to default ('hi') and activate button. 
+    // This call will trigger the first loadNews() inside setLang.
+    setLang(CURRENT_LANG); 
+});
+</script>
+
 </body>
 </html>
