@@ -232,9 +232,8 @@ const SOURCES = {
   ]
 };
 
-// *** FIX: Changed to a more reliable CORS proxy for YouTube feeds ***
-// Original: "https://corsproxy.io/?url="
-const PROXY_URL = "https://api.codetabs.dev/v1/proxy?url=";
+// *** FIX: Reverted to the previous, known working CORS proxy (corsproxy.io) ***
+const PROXY_URL = "https://corsproxy.io/?url=";
 let FEED_ITEMS = [];
 let LOADING_COUNT = 0;
 
