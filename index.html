@@ -1,1 +1,257 @@
-hello
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Independent India News Monitor</title>
+
+  <!-- SEO -->
+  <meta name="description" content="Independent, data-driven journalism tracking Indian government policy, accountability and public interest reporting." />
+  <meta name="keywords" content="India news, independent journalism, Ravish Kumar, Ajit Anjum" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #f4f4f4;
+      --card: #ffffff;
+      --text: #222;
+      --muted: #666;
+      --accent: #b30000;
+      --link: #0b5ed7;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    header h1 { margin: 0; font-size: 1.6rem; }
+    header p { margin: 0.3rem 0; font-size: 0.9rem; color: #ccc; }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #222;
+      padding: 0 1rem;
+    }
+
+    nav button, .lang-toggle button {
+      background: none;
+      border: none;
+      color: #ccc;
+      padding: 0.8rem 1rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    nav button.active, .lang-toggle button.active {
+      color: #fff;
+      border-bottom: 3px solid var(--accent);
+    }
+
+    main {
+      max-width: 1000px;
+      margin: auto;
+      padding: 1rem;
+    }
+
+    .search input {
+      width: 100%;
+      padding: 0.7rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-bottom: 1rem;
+    }
+
+    section { display: none; }
+    section.active { display: block; }
+
+    article {
+      background: var(--card);
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 4px;
+    }
+
+    article h2 {
+      margin: 0 0 0.4rem;
+      font-size: 1.05rem;
+    }
+
+    .meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    a { color: var(--link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding: 1rem;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1 id="title">Independent India News Monitor</h1>
+  <p id="subtitle">Policy • Accountability • Independent Journalism</p>
+</header>
+
+<div class="top-bar">
+  <nav>
+    <button class="active" onclick="switchTab('news')">📰 <span data-en="News" data-hi="समाचार">News</span></button>
+    <button onclick="switchTab('videos')">🎥 <span data-en="Videos" data-hi="वीडियो">Videos</span></button>
+  </nav>
+
+  <div class="lang-toggle">
+    <button class="active" onclick="setLang('en')">EN</button>
+    <button onclick="setLang('hi')">हिंदी</button>
+  </div>
+</div>
+
+<main>
+  <div class="search">
+    <input id="search" placeholder="Search headlines..." oninput="filterContent()" />
+  </div>
+
+  <section id="news" class="active"></section>
+  <section id="videos"></section>
+</main>
+
+<footer>
+  Public RSS sources • No tracking • Static site
+</footer>
+
+<script>
+const RSS_PROXY = "https://api.rss2json.com/v1/api.json?rss_url=";
+let CURRENT_LANG = "en";
+
+/* ---------- SOURCES ---------- */
+const NEWS_SOURCES = [
+  { name: "The Wire", url: "https://thewire.in/rss" },
+  { name: "Scroll", url: "https://scroll.in/feed" },
+  { name: "Article 14", url: "https://article-14.com/rss" },
+  { name: "Newslaundry", url: "https://www.newslaundry.com/rss" }
+];
+
+const VIDEO_SOURCES = [
+  {
+    name: "Ravish Kumar",
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UC0yXUUIaPVAqZLgRjvtMftw"
+  },
+  {
+    name: "Ajit Anjum",
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCkquFW943phrj5RbNqtqj4w"
+  },
+  {
+    name: "Punya Prasun Bajpai",
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCXCG3leC3eHChlU2OPWMk_A"
+  }
+];
+
+function isHindi(text) {
+  return /[\u0900-\u097F]/.test(text);
+}
+
+async function loadNews() {
+  const container = document.getElementById("news");
+  container.innerHTML = "";
+
+  for (const src of NEWS_SOURCES) {
+    const res = await fetch(RSS_PROXY + encodeURIComponent(src.url));
+    const data = await res.json();
+
+    data.items.forEach(item => {
+      const hindi = isHindi(item.title);
+      if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
+
+      const article = document.createElement("article");
+      article.innerHTML = `
+        <h2><a href="${item.link}" target="_blank">${item.title}</a></h2>
+        <div class="meta">${src.name} • ${new Date(item.pubDate).toDateString()}</div>
+        <p>${item.description.replace(/<[^>]+>/g, "").slice(0, 220)}…</p>
+      `;
+      container.appendChild(article);
+    });
+  }
+}
+
+async function loadVideos() {
+  const container = document.getElementById("videos");
+  container.innerHTML = "";
+
+  for (const ch of VIDEO_SOURCES) {
+    const res = await fetch(RSS_PROXY + encodeURIComponent(ch.url));
+    const data = await res.json();
+
+    data.items.slice(0, 4).forEach(v => {
+      const hindi = isHindi(v.title);
+      if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
+
+      const article = document.createElement("article");
+      article.innerHTML = `
+        <h2><a href="${v.link}" target="_blank">▶ ${v.title}</a></h2>
+        <div class="meta">${ch.name} • ${new Date(v.pubDate).toDateString()}</div>
+      `;
+      container.appendChild(article);
+    });
+  }
+}
+
+function setLang(lang) {
+  CURRENT_LANG = lang;
+  document.querySelectorAll(".lang-toggle button").forEach(b => b.classList.remove("active"));
+  event.target.classList.add("active");
+
+  document.querySelectorAll("[data-en]").forEach(el => {
+    el.textContent = el.dataset[lang];
+  });
+
+  document.getElementById("search").placeholder =
+    lang === "hi" ? "खोजें..." : "Search headlines...";
+
+  loadNews();
+  loadVideos();
+}
+
+function switchTab(tab) {
+  document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+  document.getElementById(tab).classList.add("active");
+
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  event.target.classList.add("active");
+}
+
+function filterContent() {
+  const q = document.getElementById("search").value.toLowerCase();
+  document.querySelectorAll("article").forEach(a => {
+    a.style.display = a.innerText.toLowerCase().includes(q) ? "block" : "none";
+  });
+}
+
+loadNews();
+loadVideos();
+</script>
+
+</body>
+</html>
