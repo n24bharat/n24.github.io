@@ -1,543 +1,241 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>N24.in | Independent News Monitor - Ravish, The Wire, Satya Hindi & Critical Analysis</title>
-  <meta name="description" content="India's largest real-time aggregator for independent, neutral, and critical journalism. Tracking political accountability, economic crises (girta rupaiya, unemployment), corruption scandals, electoral bonds (chanda lo dhanda do), Adani Group news, and social justice movements." />
-  
-  <meta name="keywords" content="vote chori, election rigging, voter fraud allegations, ballot tampering, EVM hacking, free and fair elections, election transparency, political accountability, campaign funding, political rallies, election manifesto, voter turnout, booth capturing, election commission updates, political debates, election promises, political slogans, democracy in action, election reforms, political campaigns, opposition unity, ruling party strategies, election results live, political alliances, vote bank politics, election surveys, political opinion polls, election news updates, political controversies, election fact-checking, political speeches, election rallies live, political propaganda, election monitoring, political activism, election watchdogs, political satire, political memes, election coverage, political analysis, election trends, political journalism, election debates live, political interviews, election day updates, political fact-check, election fraud prevention, political transparency, election law changes, political reforms, political awareness campaigns, girta rupaiya, falling rupee, currency depreciation, forex market trends, inflation rate, rising prices, cost of living crisis, GDP growth rate, economic slowdown, unemployment rate, job market trends, stock market crash, share market updates, commodity prices, gold price today, crude oil prices, fuel price hike, petrol diesel rates, budget 2025, fiscal deficit, trade deficit, exports and imports, economic reforms, taxation policy, GST updates, income tax rules, startup funding, venture capital trends, fintech growth, digital payments, cryptocurrency trends, bitcoin price, blockchain adoption, economic inequality, wealth gap, poverty reduction, rural economy, urban economy, industrial growth, manufacturing sector, service sector growth, agricultural reforms, farmer protests, farm loan waivers, MSME growth, economic stimulus, foreign investment, FDI policy, economic sanctions, global trade wars, supply chain disruptions, recession fears, economic recovery, green economy, sustainable finance, renewable energy investments, corruption scandals, bribery cases, money laundering, black money, hawala transactions, political corruption, corporate lobbying, scam investigations, whistleblower cases, anti-corruption laws, transparency in governance, public accountability, misuse of public funds, procurement scams, tender manipulation, nepotism in politics, favoritism in contracts, judicial corruption, police corruption, bureaucratic corruption, governance reforms, RTI activism, public interest litigation, citizen watchdogs, ethics in politics, governance transparency, anti-bribery campaigns, corruption index ranking, fraud detection, financial irregularities, audit reports, scam exposés, investigative journalism, governance failures, misuse of power, political funding transparency, shell companies, offshore accounts, tax evasion, illicit wealth, governance best practices, public sector reforms, e-governance, digital transparency tools, Adani group news, corporate mergers, acquisitions, IPO launches, stock market movers, billionaire rankings, corporate governance, business ethics, industrial projects, infrastructure development, renewable energy projects, mining sector news, logistics industry trends, shipping industry updates, aviation sector growth, telecom industry competition, tech startups, unicorn companies, e-commerce growth, retail sector trends, FMCG market, manufacturing hubs, export industries, import policies, supply chain innovations, automation in industry, AI in business, corporate layoffs, hiring trends, workplace culture, remote work trends, hybrid work models, business conferences, trade fairs, investment summits, corporate social responsibility, ESG reporting, sustainable business models, green manufacturing, digital transformation, fintech innovations, business analytics, market research trends, consumer behavior shifts, brand marketing strategies, influencer marketing, advertising trends, product launches, customer experience, loyalty programs, youth activism, student protests, women empowerment, gender equality, LGBTQ+ rights, climate change activism, environmental protests, clean energy campaigns, water conservation, air pollution control, urban development, smart cities, rural development, healthcare reforms, vaccination drives, mental health awareness, education reforms, skill development, digital literacy, social media trends, viral challenges, meme culture, influencer trends, online communities, podcast growth, streaming platforms, OTT releases, film industry news, music industry trends, sports events, cricket world cup, football leagues, Olympic updates, esports tournaments, gaming trends, fashion trends, streetwear culture, traditional crafts revival, food trends, vegan lifestyle, fitness challenges, wellness retreats, meditation" />
-
-  <meta property="og:title" content="N24.in | The Unreported Truth of India" />
-  <meta property="og:description" content="Access independent analysis and news covering the state of democracy, economy, and society in India." />
-  <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Infobox_info_icon.svg/1200px-Infobox_info_icon.svg.png" />
-  
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>N24.in — Independent India News Monitor</title>
+  <meta name="description" content="N24 - Aggregates independent Hindi news & video journalism. Default: last 24 hours."/>
   <style>
-    :root {
-      --primary: #b91c1c;
-      --secondary: #1d4ed8;
-      --bg: #f9fafb;
-      --card: #ffffff;
-      --text: #111827;
-      --gray: #6b7280;
+    /* Minimal, focused styles for fast paint */
+    :root{
+      --accent:#b91c1c; --muted:#6b7280; --bg:#f6f7f9; --card:#fff; --text:#111827;
     }
-
-    body {
-      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 0;
-      line-height: 1.6;
-    }
-
-    /* --- HEADER --- */
-    header {
-      background: #fff;
-      border-bottom: 3px solid var(--primary); 
-      padding: 1rem;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      box-shadow: 0 6px 10px -3px rgba(0,0,0,0.1); 
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .logo { font-size: 1.75rem; font-weight: 900; color: var(--primary); text-decoration: none; }
-    .logo span { color: #000; font-weight: 300; font-size: 1rem; margin-left: 8px; }
-    
-    .status-badge {
-      font-size: 0.8rem;
-      background: #f3f4f6; 
-      padding: 6px 12px;
-      border-radius: 16px;
-      color: var(--gray);
-      font-weight: 600;
-      transition: background-color 0.3s;
-      white-space: nowrap; /* Prevent wrap */
-    }
-    
-    /* Style for the new select filter */
-    #time-filter {
-        /* Inherit badge style but make it distinct */
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        background-color: #e0f2f1; /* Light cyan background */
-        border: 1px solid #99f6e4;
-        cursor: pointer;
-        padding-right: 25px; /* Space for the custom arrow */
-        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="%236b7280" d="M7.247 11.14 2.451 5.617c-.36-.453-.06-.883.39-.883h9.322c.45 0 .75.43.39.883l-4.796 5.523a.81.81 0 0 1-1.238 0z"/></svg>');
-        background-repeat: no-repeat;
-        background-position: right 8px center;
-    }
-    
-    .header-controls {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap; /* Ensure responsiveness */
-    }
-
-
-    /* --- LAYOUT --- */
-    main { max-width: 960px; margin: 0 auto; padding: 20px 15px; }
-    
-    /* FIX: Hiding content only until the first successful render to prevent flicker. */
-    #feed-stream {
-      display: flex;
-      flex-direction: column;
-      gap: 24px; 
-      opacity: 0; /* Hidden by default */
-    }
-    main.loaded #feed-stream { opacity: 1; transition: opacity 0.5s ease-in; }
-
-    /* --- CARD DESIGN (Styles maintained for professional look) --- */
-    .news-card {
-      background: var(--card);
-      border-radius: 12px; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-      overflow: hidden;
-      border: 1px solid #e5e7eb;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .news-card:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
-
-    .card-body { padding: 18px; }
-
-    .source-tag {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: var(--secondary);
-      margin-bottom: 8px; 
-      display: block;
-    }
-
-    .card-title {
-      font-size: 1.25rem; 
-      margin: 0 0 12px 0;
-      font-weight: 700;
-      line-height: 1.35;
-    }
-    .card-title a { text-decoration: none; color: inherit; }
-    .card-title a:hover { color: var(--primary); text-decoration: underline; }
-
-    .card-desc {
-      font-size: 1rem; 
-      color: #374151;
-      margin-bottom: 15px;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .card-meta {
-      font-size: 0.85rem;
-      color: var(--gray);
-      border-top: 1px solid #e5e7eb; 
-      padding-top: 12px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    /* VIDEO STYLES */
-    .video-wrapper {
-      position: relative;
-      padding-top: 56.25%; /* 16:9 Aspect Ratio */
-      background: #111;
-      display: block;
-    }
-    .video-wrapper img {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; 
-      transition: opacity 0.3s;
-    }
-    .play-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,0.3);
-      cursor: pointer;
-    }
-    .play-icon {
-      font-size: 3.5rem;
-      color: #fff;
-      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.7));
-      transition: transform 0.2s, color 0.2s;
-    }
-    .news-card:hover .play-icon { transform: scale(1.15); color: #ff3d3d; }
-
-    /* --- LOADER --- */
-    .loader {
-      text-align: center;
-      padding: 30px;
-      color: var(--gray);
-      font-style: italic;
-      font-size: 1rem;
-      transition: opacity 0.5s;
-    }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;text-rendering:optimizeLegibility;margin:0;background:var(--bg);color:var(--text)}
+    header{background:#fff;border-bottom:3px solid var(--accent);padding:.9rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:30}
+    .logo{font-weight:800;color:var(--accent);text-decoration:none}
+    .controls{display:flex;gap:8px;align-items:center}
+    select,button,input[type="search"]{padding:.45rem .6rem;border-radius:8px;border:1px solid #e5e7eb;background:#fff}
+    input[type="search"]{min-width:240px}
+    main{max-width:980px;margin:18px auto;padding:0 14px 80px}
+    #feed-stream{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;opacity:0;transition:opacity .45s}
+    main.loaded #feed-stream{opacity:1}
+    .card{background:var(--card);border-radius:10px;box-shadow:0 6px 18px rgba(12,16,20,.06);overflow:hidden;border:1px solid #eaeaea;display:flex;flex-direction:column}
+    .media{height:160px;background:#111;display:block;position:relative;overflow:hidden}
+    .media img{width:100%;height:100%;object-fit:cover;display:block}
+    .body{padding:12px;display:flex;flex-direction:column;gap:8px}
+    .tag{font-size:12px;font-weight:700;color:#0f172a;opacity:.8}
+    .title{font-size:1rem;font-weight:700;margin:0;line-height:1.25}
+    .desc{font-size:.95rem;color:#334155;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    .meta{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);padding:10px 12px;border-top:1px solid #f1f5f9}
+    .loader{padding:18px;text-align:center;color:var(--muted)}
+    footer{text-align:center;padding:22px;font-size:.82rem;color:var(--muted)}
+    @media(max-width:520px){input[type="search"]{min-width:140px}.media{height:140px}}
   </style>
 </head>
 <body>
-
 <header>
-  <a href="#" class="logo">N24.in <span>| Independent India</span></a>
-  
-  <div class="header-controls">
-    <select id="time-filter" onchange="handleTimePeriodChange(this)" class="status-badge">
-        <option value="24h" selected>Latest 24 Hours</option>
-        <option value="7d">Latest 1 Week</option>
-        <option value="all">All Time</option>
+  <a class="logo" href="/">N24.in</a>
+  <div class="controls" aria-hidden="false">
+    <select id="time-filter" title="Select time range" aria-label="Time range">
+      <option value="24h">Latest 24 hours</option>
+      <option value="7d">Latest 7 days</option>
+      <option value="all">All time</option>
     </select>
-    <div class="status-badge" id="conn-status">Initializing...</div>
+    <input id="q" type="search" placeholder="Search headlines..." aria-label="Search headlines" />
+    <button id="clearCache" title="Clear cache">Clear Cache</button>
+    <div id="status" style="padding:.45rem .7rem;border-radius:8px;background:#fff;font-weight:600;color:var(--muted)">Initializing…</div>
   </div>
 </header>
 
 <main>
-  <div id="loader" class="loader">Fetching latest reports from independent sources...</div>
-  <div id="feed-stream"></div>
+  <div id="loader" class="loader">Fetching latest reports…</div>
+  <div id="feed-stream" role="list"></div>
+  <div id="end" class="loader" style="display:none">No more items</div>
 </main>
 
-<span style="display:none;">
-  </span>
-
-<footer>
-  <div style="text-align:center; padding: 20px; font-size: 0.8rem; color: #777;">
-    &copy; 2025 N24.in - Aggregating Public RSS Feeds for Educational Purposes. Content belongs to respective publishers.
-  </div>
-</footer>
-
-<script data-goatcounter="https://n24.goatcounter.com/count"
-        async src="//gc.zgo.at/count.js"></script>
+<footer>&copy; N24.in · Aggregating public RSS for educational purposes. Publishers retain content rights.</footer>
 
 <script>
-/**
- * SOURCE CONFIGURATION (Reverted News sources to Google News search for speed and stability)
- */
-const SOURCES = {
-  news: [
-    { name: "The Wire Hindi", url: "site:thewirehindi.com" },
-    { name: "Satya Hindi", url: "site:satyahindi.com" },
-    { name: "Newslaundry", url: "site:newslaundry.com" },
-    { name: "The Quint Hindi", url: "site:hindi.thequint.com" },
-    { name: "BBC News Hindi", url: "site:bbc.com/hindi" },
-    { name: "DW Hindi", url: "site:dw.com/hi" } 
-  ],
-  video: [
-    { name: "Ravish Kumar", id: "UC0yXUUIaPVAqZLgRjvtMftw" },
-    { name: "Dhruv Rathee", id: "UC1rIVG8Kecn9h-PHRLlj4Jw" },
-    { name: "Aapka Ajit Anjum", id: "UCkquFW943phrj5RbNqtqj4w" }, 
-    { name: "Abhisar Sharma", id: "UCZtSbw6D_IK7CwYj0q9p1Gw" },
-    { name: "News24 (Manak/Sandeep)", id: "UCnu4tD50k_k9y6pI2xT9lQA" },
-    { name: "The Lallantop", id: "UCx8Z14PpntdaxCt2hakbqlQ" },
-    { name: "Bolta Hindustan", id: "UCC5o5iCgM4V2rM2vYwJ2rEQ" },
-    { name: "Red Mike", id: "UCn3a70Dq3o5WGe5JKdC7YHQ" },
-    { name: "Punya Prasun Bajpai", id: "UCXCG3leC3eHChlU2OPWMk_A" },
-    { name: "Deshbhakt (Akash)", id: "UCi82q8cZfXz7g3yL-6tG27A" },
-    { name: "Satya Hindi (Video)", id: "UC3N0dJm-w1l_S8_d-eNl73A" },
-    { name: "Kapil Sibal", id: "UCY-i892p3fQ59i5lK3yR-4A" }
-  ]
-};
+/* --------------- CONFIG --------------- */
+/* News sources: Prefer site RSS where available. If you use Google News search, exclude BBC/DW explicitly. */
+const NEWS_SOURCES = [
+  // If a site has an RSS feed, use it (preferred)
+  {name:'The Wire (Hindi)', rss:'https://thewire.in/feeds/section/hindi'}, // example - update to actual feed if available
+  {name:'Satya (Hindi) - Google', query:'site:satyahindi.com -site:bbc.com/hindi -site:dw.com/hi'},
+  {name:'Newslaundry', rss:'https://www.newslaundry.com/rss'},
+  {name:'The Quint (Hindi)', rss:'https://hindi.thequint.com/rss'}
+];
 
-// Using a single, reliable JSON proxy for all XML/RSS content.
-const PROXY_URL = "https://api.allorigins.win/get?url=";
+/* Video channels by YouTube channel_id (keeps feed stable) */
+const VIDEO_SOURCES = [
+  {name:'Ravish Kumar', channel:'UC0yXUUIaPVAqZLgRjvtMftw'},
+  {name:'Punya Prasun Bajpai', channel:'UCXCG3leC3eHChlU2OPWMk_A'}
+];
 
+/* Excluded domains (to avoid DW/BBC) when using search queries */
+const EXCLUDE_DOMAINS = ['bbc.com/hindi','dw.com/hi'];
 
-let FEED_ITEMS = [];    // Holds ALL fetched content (Raw data)
-let RENDER_ITEMS = [];  // Holds Filtered and Sorted content for display
-let CURRENT_TIME_PERIOD = '24h'; 
-let LOADING_COUNT = 0;
-let lastRenderedCount = 0; 
-let INITIAL_RENDERED = false; 
+/* Proxy & caching */
+const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
+const ALLORIGINS_RAW = 'https://api.allorigins.win/raw?url=';
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes cache
 
-// *** Infinite Scroll Variables ***
-let DISPLAY_LIMIT = 20; 
-const INCREMENT_STEP = 15; 
+/* Rendering / paging */
+let ITEMS = [];               // all parsed items
+let RENDER = [];              // filtered & sorted
+let DISPLAY_LIMIT = 24;
+const INCREMENT = 12;
 
+/* Utilities */
+const $ = id => document.getElementById(id);
+const statusEl = $('status');
+const loaderEl = $('loader');
+const stream = $('feed-stream');
+const qInput = $('q');
+const timeFilter = $('time-filter');
 
-/* --- DATA FETCHING FUNCTIONS --- */
-
-// FIX: Reverted back to Google News RSS fetch
-async function fetchNews(source) {
-  const rssUrl = `https://news.google.com/rss/search?q=${source.url}&hl=hi&gl=IN&ceid=IN:hi`;
-  await fetchAndParse(rssUrl, source.name, 'news');
+/* small helper - fetch with timeout */
+function fetchWithTimeout(url, opts={}, timeout=10000){
+  const controller = new AbortController();
+  const id = setTimeout(()=>controller.abort(), timeout);
+  return fetch(url, {...opts, signal: controller.signal})
+    .finally(()=>clearTimeout(id));
 }
 
-async function fetchVideo(source) {
-  const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.id}`;
-  await fetchAndParse(rssUrl, source.name, 'video');
+/* Cache helpers */
+function setCache(key,obj){ try{ localStorage.setItem(key, JSON.stringify({ts:Date.now(),v:obj})); }catch(e){} }
+function getCache(key){ try{ const s=localStorage.getItem(key); if(!s) return null; const o=JSON.parse(s); if(Date.now()-o.ts>CACHE_TTL_MS) { localStorage.removeItem(key); return null } return o.v }catch(e){return null} }
+
+/* ----------------- PARSING ----------------- */
+/* parse raw XML string -> items array */
+function parseXmlFeed(xmlText, sourceName, typeHint='news'){
+  const parser = new DOMParser();
+  const xml = parser.parseFromString(xmlText, 'application/xml');
+  if(xml.querySelector('parsererror')) throw new Error('XML parse error');
+  const entries = xml.querySelectorAll('item, entry');
+  const out = [];
+  entries.forEach(ent=>{
+    const title = (ent.querySelector('title')?.textContent||'').trim();
+    if(!title || title.length<6) return;
+    const pub = ent.querySelector('pubDate')?.textContent || ent.querySelector('published')?.textContent || ent.querySelector('updated')?.textContent;
+    const linkEl = ent.querySelector('link[rel="alternate"]') || ent.querySelector('link');
+    let link = linkEl ? (linkEl.getAttribute ? linkEl.getAttribute('href') || linkEl.textContent : linkEl.textContent) : (ent.querySelector('guid')?.textContent || '');
+    // Google News link formatting: contains url=...
+    const urlMatch = link.match(/url=([^&]+)/);
+    if(urlMatch) link = decodeURIComponent(urlMatch[1]);
+    // snippet
+    let snippet = ent.querySelector('description')?.textContent || ent.querySelector('summary')?.textContent || '';
+    // If snippet contains HTML, strip tags quickly
+    snippet = snippet.replace(/<\/?[^>]+(>|$)/g, '').trim();
+    // thumbnail (media:thumbnail or enclosure or youtube)
+    let thumb = ent.querySelector('media\\:thumbnail')?.getAttribute('url') || ent.querySelector('media\\:content')?.getAttribute('url') || ent.querySelector('enclosure')?.getAttribute('url') || '';
+    if(!thumb && typeHint==='video'){
+      // if link contains youtu.be or v= then extract id and build thumbnail
+      const m = link.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([^&\n?#]+)/);
+      if(m) thumb = `https://i.ytimg.com/vi/${m[1]}/mqdefault.jpg`;
+    }
+    const date = pub ? new Date(pub) : new Date();
+    if(isNaN(date.getTime())) return;
+    out.push({source:sourceName,title,link,date,type:typeHint,thumb,snippet});
+  });
+  return out;
 }
 
-async function fetchAndParse(url, sourceName, type) {
-  LOADING_COUNT++;
-  updateStatus(); 
+/* ----------------- FETCHING STRATEGY ----------------- */
+/* Try rss2json (JSON), else allorigins raw + parse XML */
+async function tryFetchFeed(rssUrl, sourceName, typeHint='news'){
+  const cacheKey = `n24_cache_${btoa(rssUrl)}`;
+  const cached = getCache(cacheKey);
+  if(cached) return cached;
 
+  // 1) Try rss2json (returns JSON if good)
   try {
-    const res = await fetch(PROXY_URL + encodeURIComponent(url));
-    if (!res.ok) throw new Error(`Network Error: ${res.status}`);
-    
-    const data = await res.json();
-    if (!data || !data.contents) throw new Error("Proxy returned empty content.");
-    const text = data.contents;
-    
-    // FIX: Robust check for valid XML root element and parser errors
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(text, "text/xml");
-    
-    if (!xml.documentElement || xml.querySelector("parsererror")) {
-        // This is where most failures occur. Log it and skip.
-        throw new Error("XML Parse Error or empty/corrupted XML document from proxy.");
-    }
-
-    // Use correct selectors based on feed type (item for standard/Google RSS, entry for Atom/YouTube)
-    const entries = xml.querySelectorAll("item, entry");
-    let newItemsAdded = false;
-
-    entries.forEach(entry => {
-      const title = entry.querySelector("title")?.textContent || "";
-      if(title.length < 10) return; 
-
-      const pubDate = entry.querySelector("pubDate")?.textContent || entry.querySelector("published")?.textContent;
-      let link = "";
-      let thumb = "";
-      let snippet = "";
-      let dateObject = new Date(pubDate);
-
-      if (type === 'video') {
-        // Video specific logic (YouTube/Atom feed)
-        link = entry.querySelector("link[rel='alternate']")?.getAttribute('href') || entry.querySelector("link")?.textContent;
-        let vidId = null;
-        
-        if (link) {
-            // Updated Regex to handle standard v=, youtu.be, embed, and shorts/ID
-            const match = link.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([^&?"]+)/);
-            if (match) {
-                vidId = match[1];
-            }
-        }
-        if(vidId) {
-            thumb = `https://i.ytimg.com/vi/${vidId}/mqdefault.jpg`;
-        } else {
-            thumb = entry.querySelector("media\\:group media\\:thumbnail")?.getAttribute('url') || entry.querySelector("media\\:thumbnail")?.getAttribute('url');
-        }
-        
-      } else {
-        // News specific logic (Google News RSS)
-        link = entry.querySelector("link")?.textContent;
-        // FIX: Re-implement Google News link extraction logic
-        const match = link.match(/url=(.+?)\&/); 
-        if (match) link = decodeURIComponent(match[1]);
-        
-        // FIX: Re-implement Google News snippet extraction logic
-        const rawDesc = entry.querySelector("description")?.textContent || "";
-        const div = document.createElement("div");
-        div.innerHTML = rawDesc;
-        snippet = div.innerText.substring(0, 160) + "...";
+    const url = RSS2JSON + encodeURIComponent(rssUrl);
+    const res = await fetchWithTimeout(url, {}, 10000);
+    if(res.ok){
+      const json = await res.json();
+      if(json && Array.isArray(json.items) && json.items.length){
+        const normalized = json.items.map(it=>{
+          const date = it.pubDate ? new Date(it.pubDate) : (it.isoDate ? new Date(it.isoDate) : new Date());
+          const link = it.link || it.guid || '';
+          const thumb = it.thumbnail || it.enclosure?.link || '';
+          const snippet = (it.description||'').replace(/<\/?[^>]+(>|$)/g,'').slice(0,220);
+          return {source:sourceName,title:it.title,link,date,type:typeHint,thumb,snippet};
+        });
+        setCache(cacheKey,normalized);
+        return normalized;
       }
-      
-      if (isNaN(dateObject.getTime())) {
-          return;
-      }
-
-      FEED_ITEMS.push({
-        source: sourceName,
-        title: title,
-        link: link,
-        date: dateObject,
-        type: type,
-        thumb: thumb,
-        snippet: snippet
-      });
-      newItemsAdded = true;
-    });
-
-    if (newItemsAdded) {
-        filterAndSortItems(); 
-        
-        if (!INITIAL_RENDERED) {
-            document.querySelector('main').classList.add('loaded');
-            INITIAL_RENDERED = true;
-            
-            const loaderEl = document.getElementById('loader');
-            loaderEl.style.opacity = '0';
-            setTimeout(() => { loaderEl.style.display = 'none'; }, 500);
-        }
-        render(); 
     }
-
   } catch (e) {
-    console.warn(`Failed to load ${sourceName} (${type}): ${e.message}`);
-  } finally {
-    LOADING_COUNT--;
-    updateStatus(); 
-    
-    // Fallback: If all fetches are complete and nothing rendered
-    if (LOADING_COUNT === 0 && !INITIAL_RENDERED) {
-        document.getElementById("feed-stream").innerHTML = '<div style="text-align: center; padding: 50px; color: var(--gray);">Failed to load any reports. Please check your network or try again later.</div>';
-        document.querySelector('main').classList.add('loaded');
-        
-        const loaderEl = document.getElementById('loader');
-        loaderEl.style.opacity = '0';
-        setTimeout(() => { loaderEl.style.display = 'none'; }, 500);
-    }
+    // ignore and fallback
+    console.warn('rss2json failed for',rssUrl,e.message);
   }
-}
 
-/* --- FILTERING & RENDERING --- */
-
-function handleTimePeriodChange(selectElement) {
-    CURRENT_TIME_PERIOD = selectElement.value;
-    filterAndSortItems();
-    render(); 
-    updateStatus(); 
-}
-
-function filterAndSortItems() {
-    let cutoff = 0;
-    
-    if (CURRENT_TIME_PERIOD === '24h') {
-        cutoff = Date.now() - (24 * 60 * 60 * 1000); 
-    } else if (CURRENT_TIME_PERIOD === '7d') {
-        cutoff = Date.now() - (7 * 24 * 60 * 60 * 1000); 
+  // 2) Try allorigins raw and parse XML
+  try {
+    const res = await fetchWithTimeout(ALLORIGINS_RAW + encodeURIComponent(rssUrl), {}, 10000);
+    if(!res.ok) throw new Error('allorigins returned ' + res.status);
+    const text = await res.text();
+    const parsed = parseXmlFeed(text, sourceName, typeHint);
+    if(parsed.length){
+      setCache(cacheKey, parsed);
+      return parsed;
     }
+  } catch (e) {
+    console.warn('allorigins/raw failed for',rssUrl,e.message);
+  }
 
-    if (cutoff > 0) {
-        RENDER_ITEMS = FEED_ITEMS.filter(item => item.date.getTime() >= cutoff);
+  // 3) Last-ditch: try direct fetch (may be CORS-blocked on GH pages)
+  try {
+    const res = await fetchWithTimeout(rssUrl, {}, 8000);
+    if(res.ok){
+      const text = await res.text();
+      const parsed = parseXmlFeed(text, sourceName, typeHint);
+      if(parsed.length){
+        setCache(cacheKey, parsed);
+        return parsed;
+      }
+    }
+  } catch(e){
+    console.warn('direct fetch failed for',rssUrl,e.message);
+  }
+
+  return []; // failed
+}
+
+/* Build Google News RSS search URL from query, with explicit excludes */
+function googleNewsRssForQuery(q){
+  const excludes = EXCLUDE_DOMAINS.map(d => `-site:${d}`).join(' ');
+  const query = `${q} ${excludes}`;
+  return `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=hi&gl=IN&ceid=IN:hi`;
+}
+
+/* Normalize configured NEWS_SOURCES to rss URLs (site rss or google search) */
+function prepareNewsTasks(){
+  const tasks = [];
+  for(const s of NEWS_SOURCES){
+    if(s.rss){
+      tasks.push({url:s.rss,name:s.name,type:'news'});
+    } else if(s.query){
+      tasks.push({url:googleNewsRssForQuery(s.query),name:s.name,type:'news'});
     } else {
-        RENDER_ITEMS = [...FEED_ITEMS];
+      console.warn('Unknown news source config',s);
     }
-    
-    RENDER_ITEMS.sort((a, b) => b.date - a.date);
-
-    const container = document.getElementById("feed-stream");
-    if(container) container.innerHTML = '';
-    lastRenderedCount = 0;
-    DISPLAY_LIMIT = 20;
-}
-
-function createCardHtml(item) {
-    let mediaHtml = '';
-    let badgeColor = item.type === 'video' ? '#ef4444' : '#2563eb';
-    
-    if (item.type === 'video' && item.thumb) {
-      mediaHtml = `
-        <a href="${item.link}" target="_blank" class="video-wrapper">
-          <img src="${item.thumb}" loading="lazy" alt="Video Thumbnail" onerror="this.onerror=null;this.closest('.video-wrapper').style.display='none';">
-          <div class="play-overlay"><div class="play-icon">▶</div></div>
-        </a>`;
-    }
-
-    const article = document.createElement('article');
-    article.className = 'news-card';
-    article.innerHTML = `
-      ${mediaHtml}
-      <div class="card-body">
-        <span class="source-tag" style="color:${badgeColor}">
-          ${item.type === 'video' ? '📺' : '📰'} ${item.source}
-        </span>
-        <h2 class="card-title">
-          <a href="${item.link}" target="_blank">${item.title}</a>
-        </h2>
-        ${item.snippet && item.type === 'news' ? `<p class="card-desc">${item.snippet}</p>` : ''}
-        <div class="card-meta">
-          <span>${timeAgo(item.date)}</span>
-          <span><a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(item.title)}&url=${encodeURIComponent(item.link)}" target="_blank" style="color:var(--gray); text-decoration:none;">Share ↗</a></span>
-        </div>
-      </div>`;
-    return article;
-}
-
-function render() {
-  const container = document.getElementById("feed-stream");
-  
-  const totalItemsToDisplay = Math.min(RENDER_ITEMS.length, DISPLAY_LIMIT);
-
-  if (totalItemsToDisplay <= lastRenderedCount) return; 
-  
-  const fragment = document.createDocumentFragment();
-  
-  for (let i = lastRenderedCount; i < totalItemsToDisplay; i++) {
-    const item = RENDER_ITEMS[i];
-    fragment.appendChild(createCardHtml(item));
   }
-  
-  container.appendChild(fragment);
-  lastRenderedCount = totalItemsToDisplay; 
+  return tasks;
 }
 
-function updateStatus() {
-  const el = document.getElementById("conn-status");
-  
-  if (LOADING_COUNT > 0) {
-    el.innerText = `Updating... (${LOADING_COUNT})`; 
-    el.style.backgroundColor = "#fff7ed";
-  } else {
-    // FIX: Show clean Live status when all fetches are complete
-    el.innerText = `Live | ${RENDER_ITEMS.length} Reports`; 
-    el.style.backgroundColor = "#dcfce7";
-  }
-}
+/* Video feed URL builder */
+function youtubeRssForChannel(id){ return `https://www.youtube.com/feeds/videos.xml?channel_id=${id}` }
 
-function timeAgo(date) {
-  if (isNaN(date.getTime())) return "Unknown Date"; 
+/* ----------------- HIGH LEVEL LOAD ----------------- */
+async function fetchAllFeeds(){
+  ITEMS = [];
+  updateStatus('Fetching…');
 
-  const seconds = Math.floor((new Date() - date) / 1000);
-  
-  if (seconds > (30 * 24 * 3600)) {
-    return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
-  }
+  const newsTasks = prepareNewsTasks();
+  const videoTasks = VIDEO_SOURCES.map(v=>({url:youtubeRssForChannel(v.channel),name:v.name,type:'video'}));
+  const allTasks = [...newsTasks,...videoTasks];
 
-  let interval = seconds / 3600;
-  if (interval >= 1) return Math.floor(interval) + "h ago";
-  
-  interval = seconds / 60;
-  if (interval >= 1) return Math.floor(interval) + "m ago";
-  
-  if (seconds > 10) return Math.floor(seconds) + "s ago";
-  return "Just now";
-}
-
-// *** Infinite Scroll Logic ***
-function checkScroll() {
-  const scrollHeight = document.documentElement.scrollHeight;
-  const scrollTop = document.documentElement.scrollTop;
-  const clientHeight = document.documentElement.clientHeight;
-  
-  if (scrollTop + clientHeight >= scrollHeight - 500 && DISPLAY_LIMIT < RENDER_ITEMS.length) {
-    DISPLAY_LIMIT += INCREMENT_STEP;
-    render();
-  }
-}
-
-
-/* --- INITIALIZATION --- */
-window.addEventListener('DOMContentLoaded', () => {
-  
-  LOADING_COUNT = SOURCES.news.length + SOURCES.video.length; 
-  updateStatus(); 
-
-  // Initialize filter and render based on the default '24h' setting
-  filterAndSortItems(); 
-
-  // 1. Fetch News First (Concurrent)
-  SOURCES.news.forEach((src) => { 
-    fetchNews(src); 
-  });
-
-  // 2. Fetch Videos Second (Slightly Staggered to prioritize news rendering)
-  SOURCES.video.forEach((src, index) => {
-    setTimeout(() => fetchVideo(src), 500 + index * 100); 
-  });
-
-  window.addEventListener('scroll', checkScroll);
-});
-
-</script>
-</body>
-</html>
+  // cap concurrency: process batches to avoid flooding proxies
