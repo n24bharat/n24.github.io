@@ -120,11 +120,52 @@
       padding: 1rem;
     }
   </style>
+</head>
+
+<body>
+
+<header>
+  <h1 id="title">Independent India News Monitor</h1>
+  <p id="subtitle">Policy • Accountability • Independent Journalism</p>
+</header>
+
+<div class="top-bar">
+<nav>
+  <button class="active" data-tab="news" onclick="switchTab('news', this)">📰 <span data-en="News" data-hi="समाचार">समाचार</span></button>
+  <button data-tab="videos" onclick="switchTab('videos', this)">🎥 <span data-en="Videos" data-hi="वीडियो">वीडियो</span></button>
+</nav>
+<div class="lang-toggle">
+  <button data-lang="en" onclick="setLang('en', this)">EN</button>
+  <button class="active" data-lang="hi" onclick="setLang('hi', this)">हिंदी</button>
+</div>
+</div>
+
+<main>
+  <div class="search">
+    <input id="search" placeholder="Search headlines..." oninput="filterContent()" />
+  </div>
+
+  <div class="period-select">
+    <select id="period" onchange="updatePeriod()">
+      <option value="day" selected>Last 24 hours</option>
+      <option value="week">Last 7 days</option>
+    </select>
+  </div>
+  
+  <div id="loading-message" style="display: none;">Loading the latest news...</div>
+
+  <section id="news" class="active"></section>
+  <section id="videos"></section>
+</main>
+
+<footer>
+  Public RSS sources • No tracking • Static site
+</footer>
 
 <script>
 // *** 1. PROXY FIX: Switching to the robust XML proxy, which handles Hindi feeds better ***
 const RSS_PROXY = "https://api.allorigins.win/get?url=";
-// *** 2. DEFAULT LANGUAGE FIX: Set Hindi as the default ***
+// *** 2. JS CHANGE: Set Hindi as the default language ***
 let CURRENT_LANG = "hi"; 
 let CURRENT_PERIOD = "day"; // Default: 24 hours
 
@@ -169,7 +210,7 @@ const getTextFromXml = (item, tag) => {
     return '';
 };
 
-/* ---------- LOAD NEWS (UPDATED FOR XML PROXY AND DYNAMIC LANGUAGE) ---------- */
+/* ---------- LOAD NEWS (XML PROXY AND DYNAMIC LANGUAGE) ---------- */
 async function loadNews() {
   const container = document.getElementById("news");
   const loading = document.getElementById("loading-message");
@@ -271,6 +312,7 @@ async function loadVideos() {
             if(!isRecent(pubDate)) return;
 
             const hindi = isHindi(title);
+            // This is a language filter fallback for video titles
             if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
 
             const article = document.createElement("article");
@@ -310,120 +352,3 @@ function setLang(lang, button) {
     if (defaultButton) {
         defaultButton.classList.add("active");
     }
-  }
-
-  document.querySelectorAll("[data-en]").forEach(el => {
-    el.textContent = el.dataset[lang];
-  });
-
-  document.getElementById("search").placeholder =
-    lang === "hi" ? "खोजें..." : "Search headlines...";
-
-  const activeTab = document.querySelector('section.active').id;
-  if (activeTab === 'news') {
-    loadNews();
-  } else {
-    loadVideos();
-  }
-}
-
-/* ---------- PERIOD TOGGLE (UNCHANGED) ---------- */
-function updatePeriod() {
-  CURRENT_PERIOD = document.getElementById('period').value;
-  const activeTab = document.querySelector('section.active').id;
-  if (activeTab === 'news') {
-    loadNews();
-  } else {
-    loadVideos();
-  }
-}
-
-/* ---------- TAB SWITCH (UNCHANGED) ---------- */
-function switchTab(tab, button) {
-  document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
-  document.getElementById(tab).classList.add("active");
-
-  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-  
-  if (button) {
-    button.classList.add("active");
-  } else {
-    const defaultButton = document.querySelector(`nav button[data-tab="${tab}"]`);
-    if (defaultButton) {
-        defaultButton.classList.add("active");
-    }
-  }
-
-  if (tab === 'news') {
-    loadNews();
-  } else {
-    loadVideos();
-  }
-}
-
-/* ---------- SEARCH FILTER (UNCHANGED) ---------- */
-function filterContent() {
-  const q = document.getElementById("search").value.toLowerCase();
-  document.querySelectorAll("article").forEach(a => {
-    a.style.display = a.innerText.toLowerCase().includes(q) ? "block" : "none";
-  });
-}
-
-/* ---------- INITIAL LOAD - Everything wrapped in DOMContentLoaded (UNCHANGED) ---------- */
-document.addEventListener('DOMContentLoaded', (event) => {
-    // 1. setLang will set CURRENT_LANG to 'hi' and activate the Hindi button
-    setLang(CURRENT_LANG); 
-    
-    // 2. switchTab will call loadNews, loading the Hindi content
-    switchTab('news');
-});
-</script>
-
-
-  
-</head>
-
-<body>
-
-<header>
-  <h1 id="title">Independent India News Monitor</h1>
-  <p id="subtitle">Policy • Accountability • Independent Journalism</p>
-</header>
-
-<div class="top-bar">
-<nav>
-  <button class="active" data-tab="news" onclick="switchTab('news', this)">📰 <span data-en="News" data-hi="समाचार">समाचार</span></button>
-  <button data-tab="videos" onclick="switchTab('videos', this)">🎥 <span data-en="Videos" data-hi="वीडियो">वीडियो</span></button>
-</nav>
-<div class="lang-toggle">
-  <button data-lang="en" onclick="setLang('en', this)">EN</button>
-  <button class="active" data-lang="hi" onclick="setLang('hi', this)">हिंदी</button>
-</div>
-</div>
-
-<main>
-  <div class="search">
-    <input id="search" placeholder="Search headlines..." oninput="filterContent()" />
-  </div>
-
-  <div class="period-select">
-    <select id="period" onchange="updatePeriod()">
-      <option value="day" selected>Last 24 hours</option>
-      <option value="week">Last 7 days</option>
-    </select>
-  </div>
-  
-  <div id="loading-message" style="display: none;">Loading the latest news...</div>
-
-  <section id="news" class="active"></section>
-  <section id="videos"></section>
-</main>
-
-<footer>
-  Public RSS sources • No tracking • Static site
-</footer>
-
-
-
-</body>
-</html>
