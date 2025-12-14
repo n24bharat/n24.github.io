@@ -218,16 +218,17 @@
 
 <script>
 /**
- * SOURCE CONFIGURATION (Restored to High Volume List)
+ * SOURCE CONFIGURATION (Updated News sources to use Direct RSS feeds)
  */
 const SOURCES = {
   news: [
-    { name: "The Wire Hindi", url: "site:thewirehindi.com" },
-    { name: "Satya Hindi", url: "site:satyahindi.com" },
-    { name: "Newslaundry", url: "site:newslaundry.com" },
-    { name: "The Quint Hindi", url: "site:hindi.thequint.com" },
-    { name: "BBC News Hindi", url: "site:bbc.com/hindi" },
-    { name: "DW Hindi", url: "site:dw.com/hi" } 
+    // FIX: Using direct publisher RSS feeds to avoid large Google News search responses
+    { name: "The Wire Hindi", url: "https://thewirehindi.com/feed/" },
+    { name: "Satya Hindi", url: "https://satyahindi.com/feed/" },
+    { name: "Newslaundry", url: "https://www.newslaundry.com/feed" }, 
+    { name: "The Quint Hindi", url: "https://hindi.thequint.com/rss/all" }, 
+    { name: "BBC News Hindi", url: "http://feeds.bbci.co.uk/hindi/rss.xml" }, 
+    { name: "DW Hindi", url: "https://rss.dw.com/xml/rss-hi-all" } 
   ],
   video: [
     { name: "Ravish Kumar", id: "UC0yXUUIaPVAqZLgRjvtMftw" },
@@ -251,7 +252,7 @@ const PROXY_URL = "https://api.allorigins.win/get?url=";
 
 let FEED_ITEMS = [];    // Holds ALL fetched content (Raw data)
 let RENDER_ITEMS = [];  // Holds Filtered and Sorted content for display
-let CURRENT_TIME_PERIOD = '24h'; // FIX: Default to 24 hours
+let CURRENT_TIME_PERIOD = '24h'; 
 let LOADING_COUNT = 0;
 let lastRenderedCount = 0; 
 let INITIAL_RENDERED = false; 
@@ -263,9 +264,9 @@ const INCREMENT_STEP = 15;
 
 /* --- DATA FETCHING FUNCTIONS --- */
 
+// FIX: fetchNews now uses the direct RSS URL provided in SOURCES
 async function fetchNews(source) {
-  const rssUrl = `https://news.google.com/rss/search?q=${source.url}&hl=hi&gl=IN&ceid=IN:hi`;
-  await fetchAndParse(rssUrl, source.name, 'news');
+  await fetchAndParse(source.url, source.name, 'news');
 }
 
 async function fetchVideo(source) {
@@ -286,34 +287,37 @@ async function fetchAndParse(url, sourceName, type) {
     if (!data || !data.contents) throw new Error("Proxy returned empty content.");
     const text = data.contents;
     
-    // FIX: Check if the content is likely an HTML error page from the proxy.
-    if (text.trim().startsWith("<html")) {
-         throw new Error("Proxy returned an HTML error page instead of content.");
-    }
-
     // 2. Parse XML content
     const parser = new DOMParser();
     const xml = parser.parseFromString(text, "text/xml");
-    if (xml.querySelector("parsererror")) throw new Error("XML Parse Error");
+    
+    // FIX: Robust check for valid XML root element and parser errors
+    if (!xml.documentElement || xml.querySelector("parsererror")) {
+        throw new Error("XML Parse Error or empty XML document.");
+    }
 
+    // Use correct selectors based on feed type (item for standard RSS, entry for Atom/YouTube)
     const entries = xml.querySelectorAll("item, entry");
     let newItemsAdded = false;
 
     entries.forEach(entry => {
       const title = entry.querySelector("title")?.textContent || "";
-      if(title.length < 10) return;
+      // Skip items with very short titles (often junk/ads)
+      if(title.length < 10) return; 
 
       const pubDate = entry.querySelector("pubDate")?.textContent || entry.querySelector("published")?.textContent;
       let link = "";
       let thumb = "";
       let snippet = "";
+      let dateObject = new Date(pubDate);
 
       if (type === 'video') {
+        // YouTube/Atom feed specific link and media logic
         link = entry.querySelector("link[rel='alternate']")?.getAttribute('href') || entry.querySelector("link")?.textContent;
         let vidId = null;
         
         if (link) {
-            // FIX: Updated Regex to handle YouTube Shorts links (shorts/ID)
+            // FIX: Updated Regex to handle standard v=, youtu.be, embed, and shorts/ID
             const match = link.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([^&?"]+)/);
             if (match) {
                 vidId = match[1];
@@ -322,25 +326,34 @@ async function fetchAndParse(url, sourceName, type) {
         if(vidId) {
             thumb = `https://i.ytimg.com/vi/${vidId}/mqdefault.jpg`;
         } else {
+            // Last resort for older YouTube feeds
             thumb = entry.querySelector("media\\:group media\\:thumbnail")?.getAttribute('url') || entry.querySelector("media\\:thumbnail")?.getAttribute('url');
         }
         
       } else {
+        // Standard RSS feed link and description logic
         link = entry.querySelector("link")?.textContent;
-        const match = link.match(/url=(.+?)\&/);
-        if (match) link = decodeURIComponent(match[1]);
+        // Check for common link formatting issues and clean up if needed (less common with direct feeds)
+        const linkMatch = link.match(/url=(.+?)\&/);
+        if (linkMatch) link = decodeURIComponent(linkMatch[1]);
         
         const rawDesc = entry.querySelector("description")?.textContent || "";
         const div = document.createElement("div");
         div.innerHTML = rawDesc;
         snippet = div.innerText.substring(0, 160) + "...";
       }
+      
+      // Filter out items with invalid dates (NaN) as they disrupt sorting/filtering
+      if (isNaN(dateObject.getTime())) {
+          console.warn(`Skipping item from ${sourceName} due to invalid date.`);
+          return;
+      }
 
       FEED_ITEMS.push({
         source: sourceName,
         title: title,
         link: link,
-        date: new Date(pubDate),
+        date: dateObject,
         type: type,
         thumb: thumb,
         snippet: snippet
@@ -349,17 +362,19 @@ async function fetchAndParse(url, sourceName, type) {
     });
 
     if (newItemsAdded) {
+        // Re-filter and sort the ENTIRE list whenever new items are added
         filterAndSortItems(); 
         
         if (!INITIAL_RENDERED) {
             document.querySelector('main').classList.add('loaded');
             INITIAL_RENDERED = true;
             
-            // FIX: Hide the loader immediately upon first successful content rendering
+            // Hide the loader immediately upon first successful content rendering
             const loaderEl = document.getElementById('loader');
             loaderEl.style.opacity = '0';
             setTimeout(() => { loaderEl.style.display = 'none'; }, 500);
         }
+        // Render the newly filtered and sorted results
         render(); 
     }
 
@@ -394,19 +409,23 @@ function filterAndSortItems() {
     let cutoff = 0;
     
     if (CURRENT_TIME_PERIOD === '24h') {
-        cutoff = Date.now() - (24 * 60 * 60 * 1000); // 24 hours ago
+        cutoff = Date.now() - (24 * 60 * 60 * 1000); 
     } else if (CURRENT_TIME_PERIOD === '7d') {
-        cutoff = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 days ago
+        cutoff = Date.now() - (7 * 24 * 60 * 60 * 1000); 
     }
 
     if (cutoff > 0) {
+        // Filter: Keep only items newer than the cutoff
         RENDER_ITEMS = FEED_ITEMS.filter(item => item.date.getTime() >= cutoff);
     } else {
+        // 'all' time: use all fetched items
         RENDER_ITEMS = [...FEED_ITEMS];
     }
     
+    // Sort all relevant items by date (newest first)
     RENDER_ITEMS.sort((a, b) => b.date - a.date);
 
+    // Reset rendering state for the new filtered list
     const container = document.getElementById("feed-stream");
     if(container) container.innerHTML = '';
     lastRenderedCount = 0;
@@ -467,7 +486,6 @@ function updateStatus() {
   const el = document.getElementById("conn-status");
   
   if (LOADING_COUNT > 0) {
-    // FIX: Show simple updating status
     el.innerText = `Updating... (${LOADING_COUNT})`; 
     el.style.backgroundColor = "#fff7ed";
   } else {
