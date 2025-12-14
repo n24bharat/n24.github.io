@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Independent India News Monitor</title>
 
-  <!-- SEO -->
   <meta name="description" content="Independent, data-driven journalism tracking Indian government policy, accountability and public interest reporting." />
   <meta name="keywords" content="India news, independent journalism, Ravish Kumar, Ajit Anjum" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -80,6 +79,14 @@
     .period-select {
       margin-bottom: 1rem;
     }
+    
+    /* Style for the loading message */
+    #loading-message {
+      text-align: center;
+      color: var(--muted);
+      padding: 2rem;
+      font-style: italic;
+    }
 
     section { display: none; }
     section.active { display: block; }
@@ -124,8 +131,8 @@
 
 <div class="top-bar">
 <nav>
-  <button class="active" data-tab="news" onclick="switchTab('news', this)">...</button>
-  <button data-tab="videos" onclick="switchTab('videos', this)">...</button>
+  <button class="active" data-tab="news" onclick="switchTab('news', this)">📰 <span data-en="News" data-hi="समाचार">News</span></button>
+  <button data-tab="videos" onclick="switchTab('videos', this)">🎥 <span data-en="Videos" data-hi="वीडियो">Videos</span></button>
 </nav>
 <div class="lang-toggle">
   <button class="active" data-lang="en" onclick="setLang('en', this)">EN</button>
@@ -144,6 +151,8 @@
       <option value="week">Last 7 days</option>
     </select>
   </div>
+  
+  <div id="loading-message" style="display: none;">Loading the latest news...</div>
 
   <section id="news" class="active"></section>
   <section id="videos"></section>
@@ -185,10 +194,17 @@ function isRecent(pubDate, period = CURRENT_PERIOD) {
   return true;
 }
 
-/* ---------- LOAD NEWS (Updated for Error Checking) ---------- */
+/* ---------- LOAD NEWS (Final Version with all checks) ---------- */
 async function loadNews() {
   const container = document.getElementById("news");
   const loading = document.getElementById("loading-message");
+  
+  // *** CRITICAL CHECK: ONLY PROCEED IF THE LOADING ELEMENT IS FOUND ***
+  if (!loading) {
+      console.error("The loading-message element is missing from the HTML.");
+      return; 
+  }
+
   container.innerHTML = "";
   loading.style.display = 'block'; // Show loading message
 
@@ -199,7 +215,7 @@ async function loadNews() {
       const res = await fetch(RSS_PROXY + encodeURIComponent(src.url));
       const data = await res.json();
       
-      // *** THE CRITICAL FIX IS HERE ***
+      // *** RSS PROXY ERROR CHECK ***
       if (data && data.items && data.status === 'ok') {
           data.items.forEach(item => {
             if(!isRecent(item.pubDate)) return;
@@ -217,7 +233,6 @@ async function loadNews() {
             articleCount++;
           });
       } else {
-        // Log a more helpful message if the API returns an error status
         console.error(`RSS Proxy failed to return items for ${src.name}. Status: ${data.status || 'Unknown'}`);
       }
 
@@ -234,44 +249,23 @@ async function loadNews() {
   }
 }
 
-// NOTE: You should apply the same check (if (data && data.items && data.status === 'ok')) to the loadVideos function as well!
-/* ---------- LANGUAGE TOGGLE ---------- */
-function setLang(lang) {
-  CURRENT_LANG = lang;
-  document.querySelectorAll(".lang-toggle button").forEach(b => b.classList.remove("active"));
-  event.target.classList.add("active");
 
-  document.querySelectorAll("[data-en]").forEach(el => {
-    el.textContent = el.dataset[lang];
-  });
-
-  document.getElementById("search").placeholder =
-    lang === "hi" ? "खोजें..." : "Search headlines...";
-
-  loadNews();
-  loadVideos();
+/* ---------- LOAD VIDEOS (Placeholder for future implementation) ---------- */
+async function loadVideos() {
+  const container = document.getElementById("videos");
+  // Implement loadVideos logic here, including getting and hiding the loading element
+  container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--muted);">Video loading logic pending.</div>`;
 }
 
-/* ---------- PERIOD TOGGLE ---------- */
-function updatePeriod() {
-  CURRENT_PERIOD = document.getElementById('period').value;
-  loadNews();
-  loadVideos();
-}
-
-/* ---------- LANGUAGE TOGGLE (UPDATED) ---------- */
-// 1. Accepts the button element as an argument (or null if called internally)
+/* ---------- LANGUAGE TOGGLE (Final Version) ---------- */
 function setLang(lang, button) {
   CURRENT_LANG = lang;
   
-  // 2. Safely remove 'active' from all buttons
   document.querySelectorAll(".lang-toggle button").forEach(b => b.classList.remove("active"));
   
-  // 3. Only try to add 'active' class if a button element was passed (i.e., it was a click)
   if (button) {
     button.classList.add("active");
   } else {
-    // 4. FALLBACK: If called without a button (initial load), manually find and activate the correct default button
     const defaultButton = document.querySelector(`.lang-toggle button[data-lang="${lang}"]`);
     if (defaultButton) {
         defaultButton.classList.add("active");
@@ -285,7 +279,6 @@ function setLang(lang, button) {
   document.getElementById("search").placeholder =
     lang === "hi" ? "खोजें..." : "Search headlines...";
 
-  // Only load the content for the currently active tab
   const activeTab = document.querySelector('section.active').id;
   if (activeTab === 'news') {
     loadNews();
@@ -294,26 +287,33 @@ function setLang(lang, button) {
   }
 }
 
-/* ---------- TAB SWITCH (UPDATED) ---------- */
-// 1. Also accepts the button element as an argument (or null if called internally)
+/* ---------- PERIOD TOGGLE (Final Version) ---------- */
+function updatePeriod() {
+  CURRENT_PERIOD = document.getElementById('period').value;
+  const activeTab = document.querySelector('section.active').id;
+  if (activeTab === 'news') {
+    loadNews();
+  } else {
+    loadVideos();
+  }
+}
+
+/* ---------- TAB SWITCH (Final Version) ---------- */
 function switchTab(tab, button) {
   document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
 
   document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
   
-  // 2. Safely handle the button activation
   if (button) {
     button.classList.add("active");
   } else {
-    // FALLBACK: If called without a button (initial load)
     const defaultButton = document.querySelector(`nav button[data-tab="${tab}"]`);
     if (defaultButton) {
         defaultButton.classList.add("active");
     }
   }
 
-  // Load content for the new tab
   if (tab === 'news') {
     loadNews();
   } else {
@@ -321,18 +321,23 @@ function switchTab(tab, button) {
   }
 }
 
+/* ---------- SEARCH FILTER ---------- */
+function filterContent() {
+  const q = document.getElementById("search").value.toLowerCase();
+  document.querySelectorAll("article").forEach(a => {
+    a.style.display = a.innerText.toLowerCase().includes(q) ? "block" : "none";
+  });
+}
+
 /* ---------- INITIAL LOAD - Ensure all defaults are set and content is loaded ---------- */
-// Wrap all initial setup and content loading in a DOMContentLoaded listener.
 document.addEventListener('DOMContentLoaded', (event) => {
-    // 1. Set initial language (will also set button class and search placeholder)
-    // Note: The setLang function should handle the button if not passed.
+    // 1. Set initial language
     setLang(CURRENT_LANG); 
     
-    // 2. Set initial tab (redundant as HTML is correct, but safe)
+    // 2. Set initial tab (This will call loadNews)
     switchTab('news');
     
-    // 3. Load the initial news content (This is now guaranteed to run AFTER "loading-message" exists)
-    loadNews(); 
+    // NOTE: loadNews() is called inside switchTab('news'), so we don't need to call it again here.
 });
 </script>
 
