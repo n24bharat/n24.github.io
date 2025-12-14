@@ -142,7 +142,7 @@
 
 <main>
   <div class="search">
-    <input id="search" placeholder="Search headlines..." oninput="filterContent()" />
+    <input id="search" placeholder="खोजें..." oninput="filterContent()" />
   </div>
 
   <div class="period-select">
@@ -163,14 +163,11 @@
 </footer>
 
 <script>
-// *** 1. STABILITY FIX: Reverting to the stable JSON proxy and direct RSS links ***
 const RSS_PROXY = "https://api.rss2json.com/v1/api.json?rss_url=";
-// *** 2. DEFAULT LANGUAGE FIX: Setting Hindi as the default ***
-let CURRENT_LANG = "hi"; 
+let CURRENT_LANG = "hi"; // Set Hindi as default language
 let CURRENT_PERIOD = "day"; // Default: 24 hours
 
-/* ---------- SOURCES (Reverting to Direct RSS links for stability) ---------- */
-// These feeds are generally English-only but are stable and load reliably via the JSON proxy.
+/* ---------- SOURCES (Direct RSS Links - Most Stable, but usually English) ---------- */
 const NEWS_SOURCES = [
   { name: "The Wire", url: "https://thewire.in/rss" },
   { name: "Scroll", url: "https://scroll.in/feed" },
@@ -197,7 +194,7 @@ function isRecent(pubDate, period = CURRENT_PERIOD) {
   return true;
 }
 
-/* ---------- LOAD NEWS (Restored to stable JSON proxy logic) ---------- */
+/* ---------- LOAD NEWS ---------- */
 async function loadNews() {
   const container = document.getElementById("news");
   const loading = document.getElementById("loading-message");
@@ -214,13 +211,13 @@ async function loadNews() {
       const res = await fetch(RSS_PROXY + encodeURIComponent(src.url));
       const data = await res.json();
       
+      // CRITICAL CHECK: Ensure data is OK before processing
       if (data && data.items && data.status === 'ok') {
           data.items.forEach(item => {
             if(!isRecent(item.pubDate)) return;
 
             const hindi = isHindi(item.title);
-            // News filter: Shows English titles if CURRENT_LANG is 'en', and Hindi titles if 'hi'.
-            // Note: Since these direct feeds are mostly English, selecting 'hi' will show few to no articles.
+            // Filter: Hide English titles if Hindi is selected, and vice-versa.
             if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
 
             const article = document.createElement("article");
@@ -248,7 +245,7 @@ async function loadNews() {
   }
 }
 
-/* ---------- LOAD VIDEOS (Restored to stable JSON proxy logic) ---------- */
+/* ---------- LOAD VIDEOS (Fully Implemented) ---------- */
 async function loadVideos() {
   const container = document.getElementById("videos");
   const loading = document.getElementById("loading-message");
@@ -270,7 +267,6 @@ async function loadVideos() {
             if(!isRecent(v.pubDate)) return;
 
             const hindi = isHindi(v.title);
-            // Video filter: Shows Hindi titles if CURRENT_LANG is 'hi', and English titles if 'en'.
             if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
 
             const article = document.createElement("article");
@@ -296,7 +292,8 @@ async function loadVideos() {
   }
 }
 
-/* ---------- LANGUAGE TOGGLE (UNCHANGED) ---------- */
+
+/* ---------- LANGUAGE TOGGLE ---------- */
 function setLang(lang, button) {
   CURRENT_LANG = lang;
   
@@ -326,7 +323,7 @@ function setLang(lang, button) {
   }
 }
 
-/* ---------- PERIOD TOGGLE (UNCHANGED) ---------- */
+/* ---------- PERIOD TOGGLE ---------- */
 function updatePeriod() {
   CURRENT_PERIOD = document.getElementById('period').value;
   const activeTab = document.querySelector('section.active').id;
@@ -337,7 +334,7 @@ function updatePeriod() {
   }
 }
 
-/* ---------- TAB SWITCH (UNCHANGED) ---------- */
+/* ---------- TAB SWITCH ---------- */
 function switchTab(tab, button) {
   document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
@@ -360,7 +357,7 @@ function switchTab(tab, button) {
   }
 }
 
-/* ---------- SEARCH FILTER (UNCHANGED) ---------- */
+/* ---------- SEARCH FILTER ---------- */
 function filterContent() {
   const q = document.getElementById("search").value.toLowerCase();
   document.querySelectorAll("article").forEach(a => {
@@ -368,12 +365,13 @@ function filterContent() {
   });
 }
 
-/* ---------- INITIAL LOAD (UNCHANGED) ---------- */
+/* ---------- INITIAL LOAD - Simplified to avoid double load ---------- */
 document.addEventListener('DOMContentLoaded', (event) => {
-    // 1. Set initial tab
+    // 1. Set initial tab to 'news' and activate the button
     switchTab('news');
     
-    // 2. Set language (which triggers the first loadNews() call)
+    // 2. Set language to default ('hi') and activate button. 
+    // This call will trigger the first loadNews() inside setLang.
     setLang(CURRENT_LANG); 
 });
 </script>
