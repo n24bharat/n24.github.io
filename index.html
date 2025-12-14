@@ -163,11 +163,12 @@
 </footer>
 
 <script>
-const RSS_PROXY = "https://api.rss2json.com/v1/api.json?rss_url=";
+// *** CRITICAL FIX 1: SWITCHING TO THE MORE RELIABLE ALLORIGINS PROXY ***
+const RSS_PROXY = "https://api.allorigins.win/get?url=";
 let CURRENT_LANG = "en";
 let CURRENT_PERIOD = "day"; // Default: 24 hours
 
-/* ---------- SOURCES ---------- */
+/* ---------- SOURCES (Verified) ---------- */
 const NEWS_SOURCES = [
   { name: "The Wire", url: "https://thewire.in/rss" },
   { name: "Scroll", url: "https://scroll.in/feed" },
@@ -194,12 +195,24 @@ function isRecent(pubDate, period = CURRENT_PERIOD) {
   return true;
 }
 
-/* ---------- LOAD NEWS (UPDATED FOR NEW PROXY) ---------- */
+// Helper to safely get the text content of an XML tag, necessary for the new proxy
+const getTextFromXml = (item, tag) => {
+    let element = item.querySelector(tag);
+    if (element) return element.textContent.trim();
+
+    // Fallback for namespaced tags (like 'content:encoded')
+    element = item.querySelector(`[nodeName$=":${tag}"]`);
+    if (element) return element.textContent.trim();
+
+    return '';
+};
+
+/* ---------- LOAD NEWS (UPDATED FOR XML PARSING) ---------- */
 async function loadNews() {
   const container = document.getElementById("news");
   const loading = document.getElementById("loading-message");
   
-  if (!loading) return console.error("Loading element is missing from HTML."); 
+  if (!loading) return; 
 
   container.innerHTML = "";
   loading.style.display = 'block';
@@ -211,21 +224,18 @@ async function loadNews() {
       const res = await fetch(RSS_PROXY + encodeURIComponent(src.url));
       const data = await res.json();
       
-      // *** NEW CODE START ***
+      // *** NEW PARSING LOGIC FOR ALLORIGINS PROXY ***
       if (data && data.contents) {
-          // Parse the XML contents string into a DOM object
           const parser = new DOMParser();
           const xmlDoc = parser.parseFromString(data.contents, "text/xml");
+          // News feeds use <item> tag for articles
           const items = xmlDoc.querySelectorAll("item");
           
           items.forEach(item => {
-            // Helper to get text content from an XML tag safely
-            const getText = (tag) => item.querySelector(tag)?.textContent || '';
-
-            const title = getText("title");
-            const link = getText("link");
-            const pubDate = getText("pubDate");
-            const description = getText("description");
+            const title = getTextFromXml(item, "title");
+            const link = getTextFromXml(item, "link");
+            const pubDate = getTextFromXml(item, "pubDate");
+            let description = getTextFromXml(item, "description"); // Get description
 
             if(!isRecent(pubDate)) return;
 
@@ -244,7 +254,6 @@ async function loadNews() {
       } else {
         console.error(`RSS Proxy failed to return content for ${src.name}.`);
       }
-      // *** NEW CODE END ***
 
     } catch(error) {
       console.error(`Network or Parsing error for ${src.name}:`, error);
@@ -258,7 +267,7 @@ async function loadNews() {
   }
 }
 
-/* ---------- LOAD VIDEOS (UPDATED FOR NEW PROXY) ---------- */
+/* ---------- LOAD VIDEOS (UPDATED FOR ATOM XML PARSING) ---------- */
 async function loadVideos() {
   const container = document.getElementById("videos");
   const loading = document.getElementById("loading-message");
@@ -275,20 +284,21 @@ async function loadVideos() {
       const res = await fetch(RSS_PROXY + encodeURIComponent(ch.url));
       const data = await res.json();
 
-      // *** NEW CODE START ***
       if (data && data.contents) {
           const parser = new DOMParser();
           const xmlDoc = parser.parseFromString(data.contents, "text/xml");
-          // YouTube feeds use <entry> for videos
+          // YouTube feeds use <entry> for videos (Atom format)
           const items = xmlDoc.querySelectorAll("entry"); 
 
           items.forEach(v => {
-            const getText = (tag) => v.querySelector(tag)?.textContent || '';
-
-            const title = getText("title");
-            const link = v.querySelector("link")?.getAttribute('href') || '';
+            const title = getTextFromXml(v, "title");
+            
+            // YouTube links are in an attribute, not text content
+            const linkElement = v.querySelector("link[rel='alternate']");
+            const link = linkElement ? linkElement.getAttribute('href') : '';
+            
             // YouTube uses <published> instead of <pubDate>
-            const pubDate = getText("published"); 
+            const pubDate = getTextFromXml(v, "published"); 
             
             if(!isRecent(pubDate)) return;
 
@@ -306,8 +316,6 @@ async function loadVideos() {
       } else {
         console.error(`RSS Proxy failed to return content for ${ch.name}.`);
       }
-      // *** NEW CODE END ***
-
     } catch(error) {
        console.error(`Network or Parsing error for ${ch.name}:`, error);
     }
@@ -320,7 +328,8 @@ async function loadVideos() {
   }
 }
 
-/* ---------- LANGUAGE TOGGLE ---------- */
+
+/* ---------- LANGUAGE TOGGLE (Merged and Corrected) ---------- */
 function setLang(lang, button) {
   CURRENT_LANG = lang;
   
@@ -350,7 +359,7 @@ function setLang(lang, button) {
   }
 }
 
-/* ---------- PERIOD TOGGLE ---------- */
+/* ---------- PERIOD TOGGLE (Merged and Corrected) ---------- */
 function updatePeriod() {
   CURRENT_PERIOD = document.getElementById('period').value;
   const activeTab = document.querySelector('section.active').id;
@@ -361,7 +370,7 @@ function updatePeriod() {
   }
 }
 
-/* ---------- TAB SWITCH ---------- */
+/* ---------- TAB SWITCH (Merged and Corrected) ---------- */
 function switchTab(tab, button) {
   document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
@@ -384,7 +393,7 @@ function switchTab(tab, button) {
   }
 }
 
-/* ---------- SEARCH FILTER ---------- */
+/* ---------- SEARCH FILTER (Merged and Corrected) ---------- */
 function filterContent() {
   const q = document.getElementById("search").value.toLowerCase();
   document.querySelectorAll("article").forEach(a => {
@@ -394,12 +403,10 @@ function filterContent() {
 
 /* ---------- INITIAL LOAD - Everything wrapped in DOMContentLoaded ---------- */
 document.addEventListener('DOMContentLoaded', (event) => {
-    // This sequence calls loadNews() twice, which is safe but might be slightly slower.
-    // It ensures all buttons and content are loaded correctly.
+    // setLang calls loadNews implicitly on the correct tab
     setLang(CURRENT_LANG); 
     switchTab('news');
 });
 </script>
-
 </body>
 </html>
