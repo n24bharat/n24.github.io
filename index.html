@@ -222,12 +222,11 @@ const SOURCES = {
   video: [
     { name: "Ravish Kumar", id: "UC0yXUUIaPVAqZLgRjvtMftw" },
     { name: "Dhruv Rathee", id: "UC1rIVG8Kecn9h-PHRLlj4Jw" },
-    { name: "Ajit Anjum", id: "UCkquFW943phrj5RbNqtqj4w" },
+    { name: "Aapka Ajit Anjum", id: "UCkquFW943phrj5RbNqtqj4w" }, // Changed name for clarity
     { name: "Abhisar Sharma", id: "UCZtSbw6D_IK7CwYj0q9p1Gw" },
     { name: "News24 (Manak/Sandeep)", id: "UCnu4tD50k_k9y6pI2xT9lQA" },
     { name: "The Lallantop", id: "UCx8Z14PpntdaxCt2hakbqlQ" },
     { name: "Bolta Hindustan", id: "UCC5o5iCgM4V2rM2vYwJ2rEQ" },
-    // Removed: Shyam Meera Singh
     { name: "Red Mike", id: "UCn3a70Dq3o5WGe5JKdC7YHQ" },
     { name: "Punya Prasun Bajpai", id: "UCXCG3leC3eHChlU2OPWMk_A" },
     { name: "Deshbhakt (Akash)", id: "UCi82q8cZfXz7g3yL-6tG27A" },
@@ -291,10 +290,19 @@ async function fetchAndParse(url, sourceName, type) {
         // 2. Try to get namespaced yt:videoId or simple videoId
         let vidId = entry.querySelector("yt\\:videoId")?.textContent || entry.querySelector("videoId")?.textContent; 
         
-        // 3. Robust Fallback: Extract ID from the link (most reliable method for YouTube RSS)
+        // 3. Fallback: Check the GUID element (often contains the video ID)
+        if (!vidId) {
+            // GUID element format is often 'yt:video:VIDEO_ID'
+            const guidText = entry.querySelector("guid")?.textContent;
+            if (guidText && guidText.startsWith("yt:video:")) {
+                vidId = guidText.substring("yt:video:".length);
+            }
+        }
+        
+        // 4. Robust Fallback: Extract ID from the link (most reliable method for YouTube RSS)
         if (!vidId && link) {
-             // Regex to capture the 'v=' parameter from standard YouTube URL
-            const match = link.match(/[?&]v=([^&]+)/);
+             // Regex to capture the 'v=' parameter from standard YouTube URL or 'youtu.be/' short link
+            const match = link.match(/(?:v=|youtu\.be\/|embed\/)([^&?"]+)/);
             if (match) {
                 vidId = match[1];
             }
@@ -302,7 +310,7 @@ async function fetchAndParse(url, sourceName, type) {
 
         if(vidId) {
             // Constructing the preferred medium-quality thumbnail URL
-            thumb = `https://i2.ytimg.com/vi/${vidId}/mqdefault.jpg`;
+            thumb = `https://i.ytimg.com/vi/${vidId}/mqdefault.jpg`;
         } else {
             // Last resort: Check for <media:thumbnail> attribute URL
             thumb = entry.querySelector("media\\:thumbnail")?.getAttribute('url');
@@ -338,8 +346,10 @@ async function fetchAndParse(url, sourceName, type) {
     // *** FLICKERING FIX: Only sort and render once all data is loaded. ***
     if (LOADING_COUNT === 0) {
       FEED_ITEMS.sort((a, b) => b.date - a.date);
-      // Removed: document.getElementById("feed-stream").innerHTML = ''; to stop flicker
-      lastRenderedCount = 0; // Ensure we start rendering from the beginning
+      
+      // *** Crucial Fix: Clear container before final render for stability ***
+      document.getElementById("feed-stream").innerHTML = ''; 
+      lastRenderedCount = 0; // Reset rendering count
       render(); 
     }
   }
@@ -354,7 +364,7 @@ function createCardHtml(item) {
     if (item.type === 'video' && item.thumb) {
       mediaHtml = `
         <a href="${item.link}" target="_blank" class="video-wrapper">
-          <img src="${item.thumb}" loading="lazy" alt="Video Thumbnail">
+          <img src="${item.thumb}" loading="lazy" alt="Video Thumbnail" onerror="this.onerror=null;this.closest('.video-wrapper').style.display='none';">
           <div class="play-overlay"><div class="play-icon">▶</div></div>
         </a>`;
     }
@@ -405,6 +415,7 @@ function render() {
   
   const loaderEl = document.getElementById('loader');
   if(FEED_ITEMS.length > 0 && LOADING_COUNT === 0) {
+      // Hide loader only when all items are loaded and some content is available
       loaderEl.style.display = 'none';
   } else if (FEED_ITEMS.length > 0 && LOADING_COUNT > 0) {
       // Keep loader visible only if content is actively loading and some data is available
@@ -423,7 +434,7 @@ function updateStatus() {
   } else {
     el.innerText = `Live | ${FEED_ITEMS.length} Reports`;
     el.style.backgroundColor = "#dcfce7";
-    // Fade out the loader once everything is loaded
+    // Fade out and hide the loader once everything is loaded
     loaderEl.style.opacity = '0';
     setTimeout(() => { if (LOADING_COUNT === 0) loaderEl.style.display = 'none'; }, 500);
   }
