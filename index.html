@@ -215,7 +215,7 @@ const SOURCES = {
     { name: "Satya Hindi", url: "site:satyahindi.com" },
     { name: "Newslaundry", url: "site:newslaundry.com" },
     { name: "The Quint Hindi", url: "site:hindi.thequint.com" },
-    { name: "The News Minute", url: "site:thenewsminute.com" },
+    { name: "BBC News Hindi", url: "site:bbc.com/hindi" },
     { name: "DW Hindi", url: "site:dw.com/hi" } 
   ],
   video: [
@@ -229,7 +229,6 @@ const SOURCES = {
     { name: "Red Mike", id: "UCn3a70Dq3o5WGe5JKdC7YHQ" },
     { name: "Punya Prasun Bajpai", id: "UCXCG3leC3eHChlU2OPWMk_A" },
     { name: "Deshbhakt (Akash)", id: "UCi82q8cZfXz7g3yL-6tG27A" },
-    // *** New additions as requested ***
     { name: "Satya Hindi (Video)", id: "UC3N0dJm-w1l_S8_d-eNl73A" }, // @SatyaHindi
     { name: "Kapil Sibal", id: "UCY-i892p3fQ59i5lK3yR-4A" } // @dilsewithkapilsibal
   ]
@@ -311,8 +310,11 @@ async function fetchAndParse(url, sourceName, type) {
   } finally {
     LOADING_COUNT--;
     updateStatus();
-    // Render on completion of any fetch to incrementally show results
-    render(); 
+    
+    // *** FLICKERING FIX: Only render when all fetches are complete. ***
+    if (LOADING_COUNT === 0) {
+      render(); 
+    }
   }
 }
 
@@ -363,7 +365,8 @@ function render() {
   if(FEED_ITEMS.length > 0 && LOADING_COUNT === 0) {
       loaderEl.style.display = 'none';
   } else if (FEED_ITEMS.length > 0 && LOADING_COUNT > 0) {
-      loaderEl.style.display = 'block';
+      // Keep loader visible if fetching is still ongoing but we have items
+      loaderEl.style.display = 'block'; 
   }
 }
 
@@ -420,6 +423,13 @@ window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => fetchVideo(src), index * 250);
     });
   }, 1000); // 1 second delay after starting news fetch
+
+  // *** FAST FIRST PAINT: Render after a short delay to show content quickly (20 items). ***
+  setTimeout(() => {
+      if (FEED_ITEMS.length > 0) {
+        render();
+      }
+  }, 1500); // Render 1.5s after DOMContentLoaded to show first batch
 
   // *** Attach scroll listener after initial load ***
   window.addEventListener('scroll', checkScroll);
