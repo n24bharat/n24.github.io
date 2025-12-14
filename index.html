@@ -169,15 +169,17 @@ let CURRENT_LANG = "en";
 let CURRENT_PERIOD = "day"; // Default: 24 hours
 
 /* ---------- SOURCES (Using Google News RSS Links) ---------- */
+/* ---------- SOURCES (Updated to use dynamic language queries) ---------- */
 const NEWS_SOURCES = [
-  { name: "The Wire (Google News)", url: "https://news.google.com/rss/search?q=%22The+Wire%22+in+india&hl=en-IN&gl=IN&ceid=IN:en" },
-  { name: "Scroll.in (Google News)", url: "https://news.google.com/rss/search?q=%22Scroll.in%22+in+india&hl=en-IN&gl=IN&ceid=IN:en" },
-  { name: "Article 14 (Google News)", url: "https://news.google.com/rss/search?q=%22Article+14%22+in+india&hl=en-IN&gl=IN&ceid=IN:en" },
-  { name: "Newslaundry (Google News)", url: "https://news.google.com/rss/search?q=%22Newslaundry%22+in+india&hl=en-IN&gl=IN&ceid=IN:en" }
+  // Only store the base search query, not the full URL
+  { name: "The Wire (Google News)", query: "%22The+Wire%22" },
+  { name: "Scroll.in (Google News)", query: "%22Scroll.in%22" },
+  { name: "Article 14 (Google News)", query: "%22Article+14%22" },
+  { name: "Newslaundry (Google News)", query: "%22Newslaundry%22" }
 ];
 
 const VIDEO_SOURCES = [
-  // Keeping the original YouTube feeds, which are usually fine with the JSON proxy
+  // Keeping the original YouTube feeds
   { name: "Ravish Kumar", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UC0yXUUIaPVAqZLgRjvtMftw" },
   { name: "Ajit Anjum", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCkquFW943phrj5RbNqtqj4w" },
   { name: "Punya Prasun Bajpai", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCXCG3leC3eHChlU2OPWMk_A" }
@@ -246,51 +248,63 @@ async function loadNews() {
   }
 }
 
-/* ---------- LOAD VIDEOS (Correct for JSON Proxy) ---------- */
-async function loadVideos() {
-  const container = document.getElementById("videos");
+/* ---------- LOAD NEWS (Updated for Dynamic Language Switching) ---------- */
+async function loadNews() {
+  const container = document.getElementById("news");
   const loading = document.getElementById("loading-message");
-
-  if (!loading) return;
   
+  if (!loading) return; 
+
   container.innerHTML = "";
   loading.style.display = 'block';
 
-  let videoCount = 0;
+  let articleCount = 0;
+  
+  // Helper to construct the language-specific Google News URL
+  const getNewsUrl = (query, lang) => {
+      // Set parameters for Hindi (hi-IN) or English (en-IN)
+      const langParam = lang === 'hi' ? 'hi-IN&ceid=IN:hi' : 'en-IN&ceid=IN:en';
+      return `https://news.google.com/rss/search?q=${query}+in+india&hl=${langParam}&gl=IN`;
+  };
 
-  for (const ch of VIDEO_SOURCES) {
+  for (const src of NEWS_SOURCES) {
     try {
-      const res = await fetch(RSS_PROXY + encodeURIComponent(ch.url));
+      // *** CRITICAL FIX: Construct the language-specific URL here ***
+      const finalUrl = getNewsUrl(src.query, CURRENT_LANG);
+      const res = await fetch(RSS_PROXY + encodeURIComponent(finalUrl));
       const data = await res.json();
-
-      // CRITICAL CHECK: Ensure status is 'ok' AND items exist for JSON proxy
+      
       if (data && data.items && data.status === 'ok') {
-          data.items.forEach(v => {
-            if(!isRecent(v.pubDate)) return;
+          data.items.forEach(item => {
+            if(!isRecent(item.pubDate)) return;
 
-            const hindi = isHindi(v.title);
-            if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
-
+            // Since the feed is now language-specific, we skip the Devanagari filter
+            
             const article = document.createElement("article");
+            // The Google News feed URL may be in the description, so we use the title's link
+            const itemLink = item.link || item.guid; 
+            
             article.innerHTML = `
-              <h2><a href="${v.link}" target="_blank" rel="noopener noreferrer">▶ ${v.title}</a></h2>
-              <div class="meta">${ch.name} • ${new Date(v.pubDate).toDateString()}</div>
+              <h2><a href="${itemLink}" target="_blank" rel="noopener noreferrer">${item.title}</a></h2>
+              <div class="meta">${src.name} • ${new Date(item.pubDate).toDateString()}</div>
+              <p>${item.description.replace(/<[^>]+>/g, "").slice(0, 220)}…</p>
             `;
             container.appendChild(article);
-            videoCount++;
+            articleCount++;
           });
       } else {
-        console.error(`RSS Proxy failed to return items for ${ch.name}. Status: ${data.status || 'Unknown'}`);
+        console.error(`RSS Proxy failed to return items for ${src.name}. Status: ${data.status || 'Unknown'}`);
       }
+
     } catch(error) {
-       console.error(`Network or Parsing error for ${ch.name}:`, error);
+      console.error(`Network or Parsing error for ${src.name}:`, error);
     }
   }
   
   loading.style.display = 'none';
 
-  if (videoCount === 0) {
-      container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--muted);">No videos found for the selected period/language, or the feeds failed to load.</div>`;
+  if (articleCount === 0) {
+      container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--muted);">No news articles found for the selected period/language, or the RSS feeds failed to load.</div>`;
   }
 }
 
