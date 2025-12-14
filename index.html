@@ -56,7 +56,31 @@
       color: var(--gray);
       font-weight: 600;
       transition: background-color 0.3s;
+      white-space: nowrap; /* Prevent wrap */
     }
+    
+    /* Style for the new select filter */
+    #time-filter {
+        /* Inherit badge style but make it distinct */
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-color: #e0f2f1; /* Light cyan background */
+        border: 1px solid #99f6e4;
+        cursor: pointer;
+        padding-right: 25px; /* Space for the custom arrow */
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="%236b7280" d="M7.247 11.14 2.451 5.617c-.36-.453-.06-.883.39-.883h9.322c.45 0 .75.43.39.883l-4.796 5.523a.81.81 0 0 1-1.238 0z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+    }
+    
+    .header-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap; /* Ensure responsiveness */
+    }
+
 
     /* --- LAYOUT --- */
     main { max-width: 960px; margin: 0 auto; padding: 20px 15px; }
@@ -70,7 +94,7 @@
     }
     main.loaded #feed-stream { opacity: 1; transition: opacity 0.5s ease-in; }
 
-    /* --- CARD DESIGN --- */
+    /* --- CARD DESIGN (Styles maintained for professional look) --- */
     .news-card {
       background: var(--card);
       border-radius: 12px; 
@@ -164,7 +188,15 @@
 
 <header>
   <a href="#" class="logo">N24.in <span>| Independent India</span></a>
-  <div class="status-badge" id="conn-status">Initializing...</div>
+  
+  <div class="header-controls">
+    <select id="time-filter" onchange="handleTimePeriodChange(this)" class="status-badge">
+        <option value="7d">Latest 1 Week</option>
+        <option value="24h">Latest 24 Hours</option>
+        <option value="all">All Time</option>
+    </select>
+    <div class="status-badge" id="conn-status">Initializing...</div>
+  </div>
 </header>
 
 <main>
@@ -217,7 +249,9 @@ const SOURCES = {
 const PROXY_URL = "https://api.allorigins.win/get?url=";
 
 
-let FEED_ITEMS = [];
+let FEED_ITEMS = [];    // Holds ALL fetched content (Raw data)
+let RENDER_ITEMS = [];  // Holds Filtered and Sorted content for display
+let CURRENT_TIME_PERIOD = '7d'; // Default to 1 week
 let LOADING_COUNT = 0;
 let lastRenderedCount = 0; 
 let INITIAL_RENDERED = false; // Flag to control the initial smooth display
@@ -230,21 +264,18 @@ const INCREMENT_STEP = 15;
 /* --- DATA FETCHING FUNCTIONS --- */
 
 async function fetchNews(source) {
-  // Google News RSS link for the specified source
   const rssUrl = `https://news.google.com/rss/search?q=${source.url}&hl=hi&gl=IN&ceid=IN:hi`;
   await fetchAndParse(rssUrl, source.name, 'news');
 }
 
 async function fetchVideo(source) {
-  // YouTube RSS link
   const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.id}`;
   await fetchAndParse(rssUrl, source.name, 'video');
 }
 
 async function fetchAndParse(url, sourceName, type) {
-  // Increment count outside try block
   LOADING_COUNT++;
-  updateStatus();
+  updateStatus(); // Update status before fetch
 
   try {
     // 1. Fetch JSON wrapper from proxy
@@ -273,30 +304,22 @@ async function fetchAndParse(url, sourceName, type) {
       let snippet = "";
 
       if (type === 'video') {
-        // Get Link
         link = entry.querySelector("link[rel='alternate']")?.getAttribute('href') || entry.querySelector("link")?.textContent;
-        
         let vidId = null;
         
-        // FIX: Reliable Video ID extraction from the link
         if (link) {
-             // Regex to capture the ID from /watch?v=, /youtu.be/ or /embed/
             const match = link.match(/(?:v=|youtu\.be\/|embed\/)([^&?"]+)/);
             if (match) {
                 vidId = match[1];
             }
         }
-
         if(vidId) {
-            // Constructing the preferred medium-quality thumbnail URL (FIX for preview)
             thumb = `https://i.ytimg.com/vi/${vidId}/mqdefault.jpg`;
         } else {
-            // Last resort: Check for media:thumbnail attribute URL
             thumb = entry.querySelector("media\\:group media\\:thumbnail")?.getAttribute('url') || entry.querySelector("media\\:thumbnail")?.getAttribute('url');
         }
         
       } else {
-        // News Link Cleaning (for Google News RSS)
         link = entry.querySelector("link")?.textContent;
         const match = link.match(/url=(.+?)\&/);
         if (match) link = decodeURIComponent(match[1]);
@@ -311,6 +334,7 @@ async function fetchAndParse(url, sourceName, type) {
         source: sourceName,
         title: title,
         link: link,
+        // FIX: Creating Date object carefully
         date: new Date(pubDate),
         type: type,
         thumb: thumb,
@@ -321,30 +345,26 @@ async function fetchAndParse(url, sourceName, type) {
 
     // FIX: Render immediately if items were added to prevent the stuck feeling
     if (newItemsAdded) {
-        FEED_ITEMS.sort((a, b) => b.date - a.date);
+        // Apply filter and sort all items
+        filterAndSortItems(); 
         
-        // Only run this complex clearing/re-rendering logic once at the very start
         if (!INITIAL_RENDERED) {
-            document.getElementById("feed-stream").innerHTML = ''; 
-            lastRenderedCount = 0; 
             document.querySelector('main').classList.add('loaded'); // Show content
             INITIAL_RENDERED = true;
             
-            // FIX: Hide the loader here immediately upon first successful content rendering
+            // FIX: Hide the loader immediately upon first successful content rendering
             const loaderEl = document.getElementById('loader');
             loaderEl.style.opacity = '0';
             setTimeout(() => { loaderEl.style.display = 'none'; }, 500);
         }
-        // Always render the latest batch
         render(); 
     }
 
   } catch (e) {
     console.warn(`Failed to load ${sourceName} (${type}): ${e.message}`);
   } finally {
-    // Decrement count and update status
     LOADING_COUNT--;
-    updateStatus(); 
+    updateStatus(); // Update status after fetch
     
     // Fallback: If all fetches are complete and nothing rendered, show error message
     if (LOADING_COUNT === 0 && !INITIAL_RENDERED) {
@@ -358,7 +378,43 @@ async function fetchAndParse(url, sourceName, type) {
   }
 }
 
-/* --- RENDERING & UTILITY --- */
+/* --- FILTERING & RENDERING --- */
+
+// NEW: Function to handle filter change from the select box
+function handleTimePeriodChange(selectElement) {
+    CURRENT_TIME_PERIOD = selectElement.value;
+    filterAndSortItems();
+    render(); 
+    updateStatus(); 
+}
+
+// NEW: Core function to filter and sort the full list
+function filterAndSortItems() {
+    let cutoff = 0;
+    
+    if (CURRENT_TIME_PERIOD === '24h') {
+        cutoff = Date.now() - (24 * 60 * 60 * 1000); // 24 hours ago
+    } else if (CURRENT_TIME_PERIOD === '7d') {
+        cutoff = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 days ago
+    }
+
+    if (cutoff > 0) {
+        // Filter out items older than the cutoff time
+        RENDER_ITEMS = FEED_ITEMS.filter(item => item.date.getTime() >= cutoff);
+    } else {
+        // 'all' time: use all fetched items
+        RENDER_ITEMS = [...FEED_ITEMS];
+    }
+    
+    // Sort all relevant items by date (newest first)
+    RENDER_ITEMS.sort((a, b) => b.date - a.date);
+
+    // Reset rendering state for the new filtered list
+    const container = document.getElementById("feed-stream");
+    if(container) container.innerHTML = '';
+    lastRenderedCount = 0;
+    DISPLAY_LIMIT = 20; // Reset limit for a fresh render
+}
 
 function createCardHtml(item) {
     let mediaHtml = '';
@@ -395,8 +451,8 @@ function createCardHtml(item) {
 function render() {
   const container = document.getElementById("feed-stream");
   
-  // Only render up to the current limit
-  const totalItemsToDisplay = Math.min(FEED_ITEMS.length, DISPLAY_LIMIT);
+  // Only render up to the current limit, using RENDER_ITEMS
+  const totalItemsToDisplay = Math.min(RENDER_ITEMS.length, DISPLAY_LIMIT);
 
   // If nothing new to display, stop.
   if (totalItemsToDisplay <= lastRenderedCount) return; 
@@ -405,7 +461,7 @@ function render() {
   
   // Loop starts from the last rendered item, only adding new ones
   for (let i = lastRenderedCount; i < totalItemsToDisplay; i++) {
-    const item = FEED_ITEMS[i];
+    const item = RENDER_ITEMS[i];
     fragment.appendChild(createCardHtml(item));
   }
   
@@ -420,15 +476,15 @@ function updateStatus() {
     el.innerText = `Updating... (${LOADING_COUNT} active)`;
     el.style.backgroundColor = "#fff7ed";
   } else {
-    // Only show "Live" once all fetches are complete
-    el.innerText = `Live | ${FEED_ITEMS.length} Reports`;
+    // Show total filtered items
+    el.innerText = `Live | ${RENDER_ITEMS.length} Reports`; 
     el.style.backgroundColor = "#dcfce7";
   }
 }
 
 // FIX: Robust timeAgo function
 function timeAgo(date) {
-  // Handle Invalid Date object
+  // Check if the date object is valid
   if (isNaN(date.getTime())) return "Unknown Date"; 
 
   const seconds = Math.floor((new Date() - date) / 1000);
@@ -455,7 +511,8 @@ function checkScroll() {
   const scrollTop = document.documentElement.scrollTop;
   const clientHeight = document.documentElement.clientHeight;
   
-  if (scrollTop + clientHeight >= scrollHeight - 500 && DISPLAY_LIMIT < FEED_ITEMS.length) {
+  // Check against RENDER_ITEMS length
+  if (scrollTop + clientHeight >= scrollHeight - 500 && DISPLAY_LIMIT < RENDER_ITEMS.length) {
     DISPLAY_LIMIT += INCREMENT_STEP;
     render();
   }
@@ -465,23 +522,20 @@ function checkScroll() {
 /* --- INITIALIZATION --- */
 window.addEventListener('DOMContentLoaded', () => {
   
-  // Set total sources to track
   LOADING_COUNT = SOURCES.news.length + SOURCES.video.length; 
   updateStatus(); 
-
+  
   // 1. Fetch News First (Priority for initial content visibility)
   SOURCES.news.forEach((src, index) => {
-    // Stagger news fetch slightly to avoid overwhelming the proxy
     setTimeout(() => fetchNews(src), index * 200); 
   });
 
   // 2. Fetch Videos Second (Lower Priority)
   setTimeout(() => {
     SOURCES.video.forEach((src, index) => {
-      // Stagger video fetch slightly
       setTimeout(() => fetchVideo(src), index * 250); 
     });
-  }, 1000); // 1 second delay after starting news fetch
+  }, 1000); 
 
   window.addEventListener('scroll', checkScroll);
 });
