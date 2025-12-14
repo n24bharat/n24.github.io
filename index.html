@@ -199,8 +199,8 @@ async function loadNews() {
   const container = document.getElementById("news");
   const loading = document.getElementById("loading-message");
   
-  // FIX 1: Safely check for the loading element
-  if (!loading) return console.error("Loading element is missing."); 
+  // *** SAFETY CHECK: The only way to stop the "loading is null" error ***
+  if (!loading) return console.error("Loading element is missing from HTML."); 
 
   container.innerHTML = "";
   loading.style.display = 'block'; // Show loading message
@@ -212,7 +212,6 @@ async function loadNews() {
       const res = await fetch(RSS_PROXY + encodeURIComponent(src.url));
       const data = await res.json();
       
-      // FIX 2: RSS Proxy Error Check
       if (data && data.items && data.status === 'ok') {
           data.items.forEach(item => {
             if(!isRecent(item.pubDate)) return;
@@ -245,7 +244,7 @@ async function loadNews() {
   }
 }
 
-/* ---------- LOAD VIDEOS (FIX 3: Function Definition Added) ---------- */
+/* ---------- LOAD VIDEOS (Fully Implemented) ---------- */
 async function loadVideos() {
   const container = document.getElementById("videos");
   const loading = document.getElementById("loading-message");
@@ -293,7 +292,7 @@ async function loadVideos() {
 }
 
 
-/* ---------- LANGUAGE TOGGLE (Robust Fix) ---------- */
+/* ---------- LANGUAGE TOGGLE ---------- */
 function setLang(lang, button) {
   CURRENT_LANG = lang;
   
@@ -335,7 +334,7 @@ function updatePeriod() {
   }
 }
 
-/* ---------- TAB SWITCH (Robust Fix) ---------- */
+/* ---------- TAB SWITCH ---------- */
 function switchTab(tab, button) {
   document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
@@ -369,11 +368,10 @@ function filterContent() {
 
 /* ---------- INITIAL LOAD - Everything wrapped in DOMContentLoaded ---------- */
 document.addEventListener('DOMContentLoaded', (event) => {
-    // 1. Set initial language (Calls setLang, which calls loadNews)
+    // setLang will call loadNews
     setLang(CURRENT_LANG); 
     
-    // 2. Set initial tab (Calls switchTab, which calls loadNews again, 
-    // but this ensures the tab buttons are correctly activated)
+    // switchTab will call loadNews again, ensuring tab button is active
     switchTab('news');
 });
 </script>
