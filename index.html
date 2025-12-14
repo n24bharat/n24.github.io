@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>N24.in – Independent Hindi News Monitor</title>
-<meta name="description" content="Independent Hindi news aggregation from neutral and critical Indian media. Last 24 hours by default.">
+<title>N24.in – Independent Hindi News & Videos</title>
 
 <style>
 body {
@@ -22,22 +21,12 @@ header {
   align-items: center;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 20;
 }
 .logo {
   font-weight: 800;
   color: #b91c1c;
   font-size: 1.1rem;
-}
-.controls {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-select, input {
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
 }
 main {
   max-width: 1000px;
@@ -54,13 +43,12 @@ main {
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
 }
 .thumb img {
   width: 100%;
-  height: 160px;
+  height: 180px;
   object-fit: cover;
+  background: #000;
 }
 .content {
   padding: 12px;
@@ -87,10 +75,13 @@ main {
   display: flex;
   justify-content: space-between;
 }
-.loader {
+.loader, .error {
   text-align: center;
-  color: #6b7280;
   padding: 20px;
+  color: #6b7280;
+}
+.error {
+  color: #b91c1c;
 }
 </style>
 </head>
@@ -99,153 +90,133 @@ main {
 
 <header>
   <div class="logo">N24.in</div>
-  <div class="controls">
-    <select id="timeFilter">
-      <option value="24h">Last 24 hours</option>
-      <option value="7d">Last 7 days</option>
-      <option value="all">All</option>
-    </select>
-    <input id="search" placeholder="खोजें…" />
-  </div>
 </header>
 
 <main>
-  <div id="loader" class="loader">Loading independent journalism…</div>
+  <div id="status" class="loader">Loading independent journalism…</div>
   <div id="feed" class="grid"></div>
 </main>
 
 <script>
-/* ---------------- CONFIG ---------------- */
+/* ================= CONFIG ================= */
 
 const PROXY = "https://corsproxy.io/?url=";
 
-const SOURCES = [
-  {
-    name: "BBC Hindi",
-    direct: "https://feeds.bbci.co.uk/hindi/rss.xml",
-    google: "site:bbc.com/hindi"
-  },
-  {
-    name: "DW Hindi",
-    direct: "https://rss.dw.com/xml/rss-hi-all",
-    google: "site:dw.com/hi"
-  },
-  {
-    name: "The Wire Hindi",
-    direct: null,
-    google: "site:thewire.in हिंदी"
-  },
-  {
-    name: "Satya Hindi",
-    direct: "https://www.satyahindi.com/rss",
-    google: "site:satyahindi.com"
-  }
+const VIDEO_SOURCES = [
+  { name: "Ravish Kumar", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UC0yXUUIaPVAqZLgRjvtMftw" },
+  { name: "Dhruv Rathee", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UC-CSyyi47VX1lD9zyeABW3w" },
+  { name: "Deshbhakt", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCA4wIY2Z9yE5u6GZV2S9k5A" }
 ];
 
-/* ---------------- HELPERS ---------------- */
+/* ================= HELPERS ================= */
 
-function googleRss(q) {
-  return `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=hi&gl=IN&ceid=IN:hi`;
+function getYouTubeId(url) {
+  if (!url) return null;
+  const patterns = [
+    /v=([^&]+)/,
+    /youtu\.be\/([^?]+)/,
+    /youtube\.com\/shorts\/([^?]+)/,
+    /youtube\.com\/embed\/([^?]+)/
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m && m[1]) return m[1];
+  }
+  return null;
 }
 
-async function fetchText(url) {
-  const r = await fetch(PROXY + encodeURIComponent(url));
-  if (!r.ok) throw new Error("Network");
-  const t = await r.text();
-  if (!t || t.length < 100) throw new Error("Empty");
-  return t;
+async function fetchXML(url) {
+  try {
+    const r = await fetch(PROXY + encodeURIComponent(url));
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const t = await r.text();
+    if (!t || t.length < 100) throw new Error("Empty response");
+    return t;
+  } catch (e) {
+    throw new Error("Fetch failed");
+  }
 }
 
-function parseItems(xmlText, source) {
+function parseRSS(xmlText) {
   const xml = new DOMParser().parseFromString(xmlText, "text/xml");
-  if (xml.querySelector("parsererror")) throw new Error("Parse");
-  return [...xml.querySelectorAll("item")].map(it => {
-    const linkRaw = it.querySelector("link")?.textContent || "";
-    const match = linkRaw.match(/url=([^&]+)/);
-    const link = match ? decodeURIComponent(match[1]) : linkRaw;
-    return {
-      source,
-      title: it.querySelector("title")?.textContent || "",
-      link,
-      date: new Date(it.querySelector("pubDate")?.textContent || Date.now()),
-      desc: (it.querySelector("description")?.textContent || "").replace(/<[^>]+>/g,""),
-      thumb: it.querySelector("media\\:thumbnail")?.getAttribute("url") || ""
-    };
-  });
-}
-
-async function loadSource(src) {
-  try {
-    if (src.direct) {
-      const xml = await fetchText(src.direct);
-      return parseItems(xml, src.name);
-    }
-  } catch {
-    console.warn("Direct RSS failed:", src.name);
+  if (xml.querySelector("parsererror")) {
+    throw new Error("Invalid XML");
   }
-
-  try {
-    const xml = await fetchText(googleRss(src.google));
-    return parseItems(xml, src.name);
-  } catch {
-    console.warn("Google RSS failed:", src.name);
-  }
-
-  return [];
+  return [...xml.querySelectorAll("item")];
 }
 
-/* ---------------- LOAD ---------------- */
+/* ================= LOAD VIDEOS ================= */
 
-let ALL = [];
-
-async function loadAll() {
-  const results = await Promise.allSettled(SOURCES.map(loadSource));
-  results.forEach(r => {
-    if (r.status === "fulfilled") ALL.push(...r.value);
-  });
-  render();
-}
-
-function render() {
+async function loadVideos() {
   const feed = document.getElementById("feed");
-  const q = search.value.toLowerCase();
-  const filter = timeFilter.value;
-  const cutoff =
-    filter === "24h" ? Date.now() - 86400000 :
-    filter === "7d" ? Date.now() - 7*86400000 : 0;
+  const status = document.getElementById("status");
+  let loaded = 0;
 
-  feed.innerHTML = "";
+  const tasks = VIDEO_SOURCES.map(async src => {
+    try {
+      const xmlText = await fetchXML(src.url);
+      const items = parseRSS(xmlText);
 
-  ALL
-    .filter(i => i.date.getTime() >= cutoff)
-    .filter(i => i.title.toLowerCase().includes(q))
-    .sort((a,b) => b.date - a.date)
-    .forEach(i => {
-      const el = document.createElement("article");
-      el.className = "card";
-      el.innerHTML = `
-        ${i.thumb ? `<div class="thumb"><img loading="lazy" src="${i.thumb}"></div>` : ""}
-        <div class="content">
-          <div class="source">${i.source}</div>
-          <div class="title"><a href="${i.link}" target="_blank">${i.title}</a></div>
-          <div class="desc">${i.desc.slice(0,160)}…</div>
-        </div>
-        <div class="meta">
-          <span>${i.date.toLocaleDateString("hi-IN")}</span>
-          <span><a href="${i.link}" target="_blank">Open ↗</a></span>
-        </div>
-      `;
-      feed.appendChild(el);
-    });
+      items.slice(0, 6).forEach(item => {
+        const link = item.querySelector("link")?.textContent || "";
+        const title = item.querySelector("title")?.textContent || "";
 
-  document.getElementById("loader").style.display = "none";
+        // 🔴 THIS IS THE KEY FIX (restores previews)
+        let thumb =
+          item.querySelector("media\\:thumbnail")?.getAttribute("url") ||
+          item.querySelector("media\\:content")?.getAttribute("url") ||
+          "";
+
+        if (!thumb) {
+          const vid = getYouTubeId(link);
+          if (vid) {
+            thumb = `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`;
+          }
+        }
+
+        if (!thumb) return;
+
+        const card = document.createElement("article");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="thumb">
+            <img loading="lazy" src="${thumb}">
+          </div>
+          <div class="content">
+            <div class="source">📺 ${src.name}</div>
+            <div class="title">
+              <a href="${link}" target="_blank">${title}</a>
+            </div>
+          </div>
+          <div class="meta">
+            <span>YouTube</span>
+            <span><a href="${link}" target="_blank">Open ↗</a></span>
+          </div>
+        `;
+        feed.appendChild(card);
+        loaded++;
+      });
+    } catch (e) {
+      console.warn("Video feed failed:", src.name);
+    }
+  });
+
+  await Promise.allSettled(tasks);
+
+  if (loaded === 0) {
+    status.className = "error";
+    status.textContent = "Unable to load videos at the moment.";
+  } else {
+    status.style.display = "none";
+  }
 }
 
-search.oninput = render;
-timeFilter.onchange = render;
+loadVideos();
 
-loadAll();
 </script>
+  <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "c5b2b0d87e424dbb9e2235cca1ce9367"}'></script><!-- End Cloudflare Web Analytics -->
+<script data-goatcounter="https://n24.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
 
 </body>
 </html>
