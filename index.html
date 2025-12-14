@@ -165,7 +165,7 @@
 <script>
 // *** 1. PROXY FIX: Switching to the robust XML proxy, which handles Hindi feeds better ***
 const RSS_PROXY = "https://api.allorigins.win/get?url=";
-// *** 2. JS CHANGE: Set Hindi as the default language ***
+// *** 2. DEFAULT LANGUAGE FIX: Set Hindi as the default ***
 let CURRENT_LANG = "hi"; 
 let CURRENT_PERIOD = "day"; // Default: 24 hours
 
@@ -254,10 +254,15 @@ async function loadNews() {
             const article = document.createElement("article");
             const itemLink = link; 
             
+            // Fallback for missing description
+            const articleDescription = description.trim() 
+                ? description.replace(/<[^>]+>/g, "").slice(0, 220) + "…" 
+                : "No description available.";
+
             article.innerHTML = `
               <h2><a href="${itemLink}" target="_blank" rel="noopener noreferrer">${title}</a></h2>
               <div class="meta">${src.name} • ${new Date(pubDate).toDateString()}</div>
-              <p>${description.replace(/<[^>]+>/g, "").slice(0, 220)}…</p>
+              <p>${articleDescription}</p>
             `;
             container.appendChild(article);
             articleCount++;
@@ -312,7 +317,6 @@ async function loadVideos() {
             if(!isRecent(pubDate)) return;
 
             const hindi = isHindi(title);
-            // This is a language filter fallback for video titles
             if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
 
             const article = document.createElement("article");
@@ -352,3 +356,75 @@ function setLang(lang, button) {
     if (defaultButton) {
         defaultButton.classList.add("active");
     }
+  }
+
+  document.querySelectorAll("[data-en]").forEach(el => {
+    el.textContent = el.dataset[lang];
+  });
+
+  document.getElementById("search").placeholder =
+    lang === "hi" ? "खोजें..." : "Search headlines...";
+
+  const activeTab = document.querySelector('section.active').id;
+  if (activeTab === 'news') {
+    loadNews();
+  } else {
+    loadVideos();
+  }
+}
+
+/* ---------- PERIOD TOGGLE (UNCHANGED) ---------- */
+function updatePeriod() {
+  CURRENT_PERIOD = document.getElementById('period').value;
+  const activeTab = document.querySelector('section.active').id;
+  if (activeTab === 'news') {
+    loadNews();
+  } else {
+    loadVideos();
+  }
+}
+
+/* ---------- TAB SWITCH (UNCHANGED) ---------- */
+function switchTab(tab, button) {
+  document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+  document.getElementById(tab).classList.add("active");
+
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  
+  if (button) {
+    button.classList.add("active");
+  } else {
+    const defaultButton = document.querySelector(`nav button[data-tab="${tab}"]`);
+    if (defaultButton) {
+        defaultButton.classList.add("active");
+    }
+  }
+
+  if (tab === 'news') {
+    loadNews();
+  } else {
+    loadVideos();
+  }
+}
+
+/* ---------- SEARCH FILTER (UNCHANGED) ---------- */
+function filterContent() {
+  const q = document.getElementById("search").value.toLowerCase();
+  document.querySelectorAll("article").forEach(a => {
+    a.style.display = a.innerText.toLowerCase().includes(q) ? "block" : "none";
+  });
+}
+
+/* ---------- INITIAL LOAD - Simplified to avoid double load ---------- */
+document.addEventListener('DOMContentLoaded', (event) => {
+    // 1. Set initial tab to 'news' and activate the button
+    switchTab('news');
+    
+    // 2. Set language to default ('hi') and activate button. 
+    // This call will trigger the first loadNews() inside setLang.
+    setLang(CURRENT_LANG); 
+});
+</script>
+
+</body>
+</html>
