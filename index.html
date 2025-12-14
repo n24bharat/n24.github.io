@@ -123,15 +123,14 @@
 </header>
 
 <div class="top-bar">
-  <nav>
-    <button class="active" onclick="switchTab('news')">📰 <span data-en="News" data-hi="समाचार">News</span></button>
-    <button onclick="switchTab('videos')">🎥 <span data-en="Videos" data-hi="वीडियो">Videos</span></button>
-  </nav>
-
-  <div class="lang-toggle">
-    <button class="active" onclick="setLang('en')">EN</button>
-    <button onclick="setLang('hi')">हिंदी</button>
-  </div>
+<nav>
+  <button class="active" data-tab="news" onclick="switchTab('news', this)">...</button>
+  <button data-tab="videos" onclick="switchTab('videos', this)">...</button>
+</nav>
+<div class="lang-toggle">
+  <button class="active" data-lang="en" onclick="setLang('en', this)">EN</button>
+  <button data-lang="hi" onclick="setLang('hi', this)">हिंदी</button>
+</div>
 </div>
 
 <main>
@@ -260,21 +259,66 @@ function updatePeriod() {
   loadVideos();
 }
 
-/* ---------- TAB SWITCH ---------- */
-function switchTab(tab) {
+/* ---------- LANGUAGE TOGGLE (UPDATED) ---------- */
+// 1. Accepts the button element as an argument (or null if called internally)
+function setLang(lang, button) {
+  CURRENT_LANG = lang;
+  
+  // 2. Safely remove 'active' from all buttons
+  document.querySelectorAll(".lang-toggle button").forEach(b => b.classList.remove("active"));
+  
+  // 3. Only try to add 'active' class if a button element was passed (i.e., it was a click)
+  if (button) {
+    button.classList.add("active");
+  } else {
+    // 4. FALLBACK: If called without a button (initial load), manually find and activate the correct default button
+    const defaultButton = document.querySelector(`.lang-toggle button[data-lang="${lang}"]`);
+    if (defaultButton) {
+        defaultButton.classList.add("active");
+    }
+  }
+
+  document.querySelectorAll("[data-en]").forEach(el => {
+    el.textContent = el.dataset[lang];
+  });
+
+  document.getElementById("search").placeholder =
+    lang === "hi" ? "खोजें..." : "Search headlines...";
+
+  // Only load the content for the currently active tab
+  const activeTab = document.querySelector('section.active').id;
+  if (activeTab === 'news') {
+    loadNews();
+  } else {
+    loadVideos();
+  }
+}
+
+/* ---------- TAB SWITCH (UPDATED) ---------- */
+// 1. Also accepts the button element as an argument (or null if called internally)
+function switchTab(tab, button) {
   document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
 
   document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-  event.target.classList.add("active");
-}
+  
+  // 2. Safely handle the button activation
+  if (button) {
+    button.classList.add("active");
+  } else {
+    // FALLBACK: If called without a button (initial load)
+    const defaultButton = document.querySelector(`nav button[data-tab="${tab}"]`);
+    if (defaultButton) {
+        defaultButton.classList.add("active");
+    }
+  }
 
-/* ---------- SEARCH FILTER ---------- */
-function filterContent() {
-  const q = document.getElementById("search").value.toLowerCase();
-  document.querySelectorAll("article").forEach(a => {
-    a.style.display = a.innerText.toLowerCase().includes(q) ? "block" : "none";
-  });
+  // Load content for the new tab
+  if (tab === 'news') {
+    loadNews();
+  } else {
+    loadVideos();
+  }
 }
 
 /* ---------- INITIAL LOAD - Ensure all defaults are set and content is loaded ---------- */
