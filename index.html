@@ -2,440 +2,522 @@
 <html lang="hi">
 <head>
   <meta charset="UTF-8" />
-  <title>Independent India News Monitor</title>
-
-  <meta name="description" content="Independent, data-driven journalism tracking Indian government policy, accountability and public interest reporting." />
-  <meta name="keywords" content="India news, independent journalism, Ravish Kumar, Ajit Anjum" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>N24.in | Independent India News Monitor</title>
+  <meta name="description" content="Aggregated independent news from Ravish Kumar, The Wire, Satya Hindi, and more." />
 
   <style>
     :root {
-      --bg: #f4f4f4;
-      --card: #ffffff;
-      --text: #222;
-      --muted: #666;
-      --accent: #b30000;
-      --link: #0b5ed7;
+      --primary: #d32f2f; /* News Red */
+      --bg: #f3f4f6;
+      --card-bg: #ffffff;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --youtube: #ff0000;
+      --news: #2563eb;
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; outline: none; }
 
     body {
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
+      padding: 0;
+      line-height: 1.5;
     }
 
+    /* --- Header --- */
     header {
-      background: #111;
-      color: #fff;
-      padding: 1rem;
-      text-align: center;
-    }
-
-    header h1 { margin: 0; font-size: 1.6rem; }
-    header p { margin: 0.3rem 0; font-size: 0.9rem; color: #ccc; }
-
-    .top-bar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 0.8rem 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #222;
-      padding: 0 1rem;
-      flex-wrap: wrap;
     }
 
-    nav button, .lang-toggle button {
-      background: none;
-      border: none;
-      color: #ccc;
-      padding: 0.8rem 1rem;
-      cursor: pointer;
-      font-size: 0.9rem;
+    .brand {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
-    nav button.active, .lang-toggle button.active {
-      color: #fff;
-      border-bottom: 3px solid var(--accent);
-    }
+    .brand span { color: #000; font-weight: 400; font-size: 0.9rem; display: none; }
+    @media(min-width: 600px) { .brand span { display: inline; } }
 
+    .header-controls { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* --- Container --- */
     main {
-      max-width: 1000px;
-      margin: auto;
+      max-width: 800px;
+      margin: 0 auto;
       padding: 1rem;
     }
 
-    .search input {
-      width: 100%;
-      padding: 0.7rem;
-      font-size: 1rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      margin-bottom: 1rem;
+    /* --- Filters --- */
+    .filters {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      scrollbar-width: none; /* Hide scrollbar Firefox */
+    }
+    .filters::-webkit-scrollbar { display: none; }
+
+    .filter-btn {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .filter-btn.active {
+      background: var(--text-main);
+      color: #fff;
+      border-color: var(--text-main);
     }
 
-    .period-select {
-      margin-bottom: 1rem;
-    }
-    
-    /* Style for the loading message */
-    #loading-message {
-      text-align: center;
-      color: var(--muted);
-      padding: 2rem;
-      font-style: italic;
+    /* --- Feed Grid --- */
+    .feed-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
     }
 
-    section { display: none; }
-    section.active { display: block; }
+    /* --- Cards --- */
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
 
-    article {
-      background: var(--card);
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-left: 4px solid var(--accent);
+    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+    /* Video Card Specifics */
+    .card-media {
+      position: relative;
+      padding-top: 56.25%; /* 16:9 Aspect Ratio */
+      background: #000;
+    }
+    .card-media img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      opacity: 0.9;
+    }
+    .play-icon {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px; height: 50px;
+      background: rgba(0,0,0,0.7);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.5rem;
+    }
+
+    /* News Card Specifics (No big image usually in RSS) */
+    .news-badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
       border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+    .type-news { color: var(--news); background: #eff6ff; }
+    .type-video { color: var(--youtube); background: #fef2f2; }
+
+    .card-content { padding: 1rem; flex-grow: 1; display: flex; flex-direction: column; }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+      line-height: 1.4;
+    }
+    .card-title a { color: inherit; text-decoration: none; }
+    .card-title a:hover { text-decoration: underline; color: var(--primary); }
+
+    .card-excerpt {
+      font-size: 0.95rem;
+      color: #4b5563;
+      margin-bottom: 1rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
-    article h2 {
-      margin: 0 0 0.4rem;
-      font-size: 1.05rem;
+    .card-meta {
+      margin-top: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      padding-top: 0.8rem;
     }
 
-    .meta {
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-bottom: 0.4rem;
+    .source-name { font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 5px;}
+    
+    /* "Fresh" indicator */
+    .fresh-dot {
+      height: 8px; width: 8px;
+      background-color: #22c55e;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
     }
 
-    a { color: var(--link); text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    /* --- Loading & States --- */
+    .loader {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      display: none;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      width: 30px; height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+    /* Scroll Sentinel */
+    #sentinel { height: 50px; margin-top: 20px; }
+
+    /* Footer */
     footer {
       text-align: center;
-      font-size: 0.8rem;
-      color: var(--muted);
-      padding: 1rem;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+      background: #fff;
     }
   </style>
 </head>
-
 <body>
 
 <header>
-  <h1 id="title">Independent India News Monitor</h1>
-  <p id="subtitle">Policy • Accountability • Independent Journalism</p>
+  <a href="#" class="brand">
+    N24.in <span>| Independent Media Monitor</span>
+  </a>
+  <div class="header-controls">
+    <span id="status-text">Updating...</span>
+  </div>
 </header>
 
-<div class="top-bar">
-<nav>
-  <button class="active" data-tab="news" onclick="switchTab('news', this)">📰 <span data-en="News" data-hi="समाचार">समाचार</span></button>
-  <button data-tab="videos" onclick="switchTab('videos', this)">🎥 <span data-en="Videos" data-hi="वीडियो">वीडियो</span></button>
-</nav>
-<div class="lang-toggle">
-  <button data-lang="en" onclick="setLang('en', this)">EN</button>
-  <button class="active" data-lang="hi" onclick="setLang('hi', this)">हिंदी</button>
-</div>
-</div>
-
 <main>
-  <div class="search">
-    <input id="search" placeholder="खोजें..." oninput="filterContent()" />
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterData('all', this)">All Feeds</button>
+    <button class="filter-btn" onclick="filterData('video', this)">📺 Videos Only</button>
+    <button class="filter-btn" onclick="filterData('news', this)">📰 News Only</button>
   </div>
 
-  <div class="period-select">
-    <select id="period" onchange="updatePeriod()">
-      <option value="day" selected>Last 24 hours</option>
-      <option value="week">Last 7 days</option>
-    </select>
+  <div id="feed" class="feed-container"></div>
+  
+  <div class="loader" id="loader">
+    <div class="spinner"></div>
+    <p>Loading latest independent news...</p>
   </div>
   
-  <div id="loading-message" style="display: none;">Loading the latest news...</div>
-
-  <section id="news" class="active"></section>
-  <section id="videos"></section>
+  <div id="sentinel"></div>
 </main>
 
 <footer>
-  Public RSS sources • No tracking • Static site • © 2025-2030 n24.in 
+  <p>Aggregating independent Indian journalism.<br>Content property of respective publishers.</p>
 </footer>
 
 <script>
-// ---------- PROXY: Using AllOrigins as a reliable CORS proxy, we will now parse the XML it returns ----------
-const RSS_PROXY = "https://api.allorigins.win/get?url=";
-let CURRENT_LANG = "hi"; // Set Hindi as default language
-let CURRENT_PERIOD = "day"; // Default: 24 hours
+/**
+ * CONFIGURATION
+ * A list of independent news sources and YouTube channels tailored for Hindi audience.
+ */
+const SOURCES = {
+  // Use Google News RSS queries for specific websites to ensure we get their content
+  news: [
+    { name: "The Wire Hindi", url: "https://news.google.com/rss/search?q=site:thewirehindi.com&hl=hi&gl=IN&ceid=IN:hi", icon: "📝" },
+    { name: "Satya Hindi", url: "https://news.google.com/rss/search?q=site:satyahindi.com&hl=hi&gl=IN&ceid=IN:hi", icon: "🗞️" },
+    { name: "Newslaundry Hindi", url: "https://news.google.com/rss/search?q=site:newslaundry.com/hindi&hl=hi&gl=IN&ceid=IN:hi", icon: "🧺" },
+    { name: "Article 14", url: "https://news.google.com/rss/search?q=site:article-14.com&hl=en-IN&gl=IN&ceid=IN:en", icon: "⚖️" }, // Mostly Eng but critical
+    { name: "Scroll.in", url: "https://news.google.com/rss/search?q=site:scroll.in&hl=en-IN&gl=IN&ceid=IN:en", icon: "📜" }
+  ],
+  // YouTube Channel RSS Feeds
+  video: [
+    { name: "Ravish Kumar Official", id: "UC0yXUUIaPVAqZLgRjvtMftw" },
+    { name: "Ajit Anjum", id: "UCkquFW943phrj5RbNqtqj4w" },
+    { name: "Abhisar Sharma", id: "UCZtSbw6D_IK7CwYj0q9p1Gw" }, // Pol Khol
+    { name: "Satya Hindi", id: "UCXCG3leC3eHChlU2OPWMk_A" },
+    { name: "Red Mike", id: "UCn3a70Dq3o5WGe5JKdC7YHQ" }, // Saurabh Shukla
+    { name: "Kapil Sibal", id: "UCwKnyqX84XjK5tB58uOIgww" }, // Dil Se
+    { name: "Sakshi Joshi", id: "UCTNrqN_Y7w_yJ-W22650Y3g" },
+    { name: "4PM News", id: "UCx4-s53O5F52kO1i3Dq3n0Q" }, // Sanjay Sharma
+    { name: "The Deshbhakt", id: "UCi82q8cZfXz7g3yL-6tG27A" } // Akash Banerjee
+  ]
+};
 
-/* ---------- SOURCES (Using Google News for reliability, and YouTube for videos) ---------- */
-const NEWS_SOURCES = [
-  // Using Google News RSS links for stability.
-  { name: "The Wire (Google News)", url: "https://news.google.com/rss/search?q=%22The+Wire%22+in+india&hl=en-IN&gl=IN&ceid=IN:en" },
-  { name: "Scroll.in (Google News)", url: "https://news.google.com/rss/search?q=%22Scroll.in%22+in+india&hl=en-IN&gl=IN&ceid=IN:en" },
-  { name: "Article 14 (Google News)", url: "https://news.google.com/rss/search?q=%22Article+14%22+in+india&hl=en-IN&gl=IN&ceid=IN:en" },
-  { name: "Newslaundry (Google News)", url: "https://news.google.com/rss/search?q=%22Newslaundry%22+in+india&hl=en-IN&gl=IN&ceid=IN:en" }
-];
+const PROXY_URL = "https://api.allorigins.win/get?url=";
+let GLOBAL_ITEMS = []; // Stores all fetched items
+let DISPLAY_BUFFER = []; // Items currently ready to show
+let CURRENT_INDEX = 0; // For infinite scroll tracking
+let CURRENT_FILTER = 'all';
+const BATCH_SIZE = 10; // How many items to load on scroll
 
-const VIDEO_SOURCES = [
-  // Keeping the original YouTube feeds
-  { name: "Ravish Kumar", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UC0yXUUIaPVAqZLgRjvtMftw" },
-  { name: "Ajit Anjum", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCkquFW943phrj5RbNqtqj4w" },
-  { name: "Punya Prasun Bajpai", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCXCG3leC3eHChlU2OPWMk_A" }
-];
+// --- 1. DATA FETCHING ---
 
+async function fetchAllData() {
+  document.getElementById('loader').style.display = 'block';
+  const promises = [];
 
-/* ---------- XML PARSER (ROBUST FUNCTION) ---------- */
-function parseXML(xmlString, isVideo) {
+  // 1. Fetch News
+  SOURCES.news.forEach(source => {
+    promises.push(fetchRSS(source, 'news'));
+  });
+
+  // 2. Fetch Videos
+  SOURCES.video.forEach(source => {
+    // YouTube RSS format: https://www.youtube.com/feeds/videos.xml?channel_id=ID
+    const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.id}`;
+    promises.push(fetchRSS({ ...source, url: url }, 'video'));
+  });
+
+  // Wait for all (using allSettled so one failure doesn't stop others)
+  const results = await Promise.allSettled(promises);
+  
+  // Aggregate results
+  GLOBAL_ITEMS = [];
+  results.forEach(res => {
+    if (res.status === 'fulfilled') {
+      GLOBAL_ITEMS = GLOBAL_ITEMS.concat(res.value);
+    }
+  });
+
+  // Sort by Date (Newest First)
+  GLOBAL_ITEMS.sort((a, b) => b.timestamp - a.timestamp);
+
+  document.getElementById('loader').style.display = 'none';
+  document.getElementById('status-text').innerText = `${GLOBAL_ITEMS.length} items loaded`;
+  
+  // Initial Render
+  applyFilterAndRender();
+}
+
+async function fetchRSS(source, type) {
+  try {
+    const response = await fetch(PROXY_URL + encodeURIComponent(source.url));
+    const data = await response.json();
+    if (!data.contents) return [];
+
     const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+    const xml = parser.parseFromString(data.contents, "text/xml");
     const items = [];
-
-    // Find all <item> (RSS) or <entry> (Atom/YouTube) elements
-    const entries = xmlDoc.querySelectorAll("item, entry"); 
+    
+    // Select entries (Atom/YT) or items (RSS)
+    const entries = xml.querySelectorAll("item, entry");
 
     entries.forEach(entry => {
-        let title = entry.querySelector("title")?.textContent || "No Title";
-        let pubDate = entry.querySelector("pubDate")?.textContent || entry.querySelector("published")?.textContent;
-        let description = entry.querySelector("description")?.textContent || "";
-        let link = "";
+      // Common extractions
+      const title = entry.querySelector("title")?.textContent || "";
+      
+      // Date Parsing
+      const pubDateStr = entry.querySelector("pubDate")?.textContent || entry.querySelector("published")?.textContent;
+      const dateObj = new Date(pubDateStr);
+      const timestamp = dateObj.getTime();
+      
+      // Link Extraction
+      let link = "";
+      if (type === 'video') {
+         link = entry.querySelector("link[rel='alternate']")?.getAttribute('href') || entry.querySelector("link")?.textContent;
+      } else {
+         // Google News redirect cleanup
+         const rawLink = entry.querySelector("link")?.textContent;
+         link = rawLink;
+         // Attempt to clean Google URL if possible, otherwise rawLink works
+         const match = rawLink.match(/url=(.+?)\&/);
+         if (match) link = decodeURIComponent(match[1]);
+      }
 
-        // 1. Get Link: YouTube feeds use Atom, the primary link is in an attribute
-        if (isVideo) {
-            // Find the <link> tag with rel="alternate" and extract its href
-            link = entry.querySelector("link[rel='alternate']")?.getAttribute('href') || entry.querySelector("link")?.textContent;
-        } 
-        
-        // 2. Get Link: Standard RSS feeds use <link> tag's text content
-        if (!link) {
-            link = entry.querySelector("link")?.textContent;
-        }
+      // Description / Snippet
+      let desc = "";
+      if (type === 'news') {
+         // Strip HTML tags from description
+         const rawDesc = entry.querySelector("description")?.textContent || "";
+         const tempDiv = document.createElement("div");
+         tempDiv.innerHTML = rawDesc;
+         desc = tempDiv.textContent || tempDiv.innerText || "";
+      }
 
-        // 3. Clean Google News Link: The standard link in Google RSS is a redirect. We extract the true URL.
-        if (link && link.startsWith('https://news.google.com/rss/articles/')) {
-            try {
-                // The actual URL is encoded in the link text (which is the redirect URL)
-                const match = link.match(/url=(.+?)\&/);
-                if (match && match[1]) {
-                    link = decodeURIComponent(match[1]);
-                }
-            } catch (e) {
-                // If regex fails, use the original redirect link
-            }
+      // Thumbnail for Videos
+      let thumbnail = null;
+      if (type === 'video') {
+        // Extract Video ID to build high-res thumbnail URL
+        const videoId = entry.querySelector("videoId")?.textContent; // yt:videoId
+        if (videoId) {
+            thumbnail = `https://i1.ytimg.com/vi/${videoId}/hqdefault.jpg`;
         }
-        
-        // Final cleanup and push
-        items.push({
-            title: title.trim(),
-            link: (link || "#").trim(),
-            pubDate: pubDate,
-            description: description
-        });
+      }
+
+      // Is Recent? (24h)
+      const isRecent = (new Date() - dateObj) < (24 * 60 * 60 * 1000);
+
+      items.push({
+        title,
+        link,
+        timestamp,
+        dateStr: dateObj.toLocaleString('hi-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' }),
+        sourceName: source.name,
+        sourceIcon: source.icon || "📺",
+        type,
+        desc,
+        thumbnail,
+        isRecent
+      });
     });
 
-    return items.filter(item => item.title && item.link !== '#');
-}
-
-
-/* ---------- HELPER FUNCTIONS ---------- */
-function isHindi(text) {
-  // Checks for characters in the Devanagari block
-  return /[\u0900-\u097F]/.test(text);
-}
-
-function isRecent(pubDate, period = CURRENT_PERIOD) {
-  const now = new Date();
-  const published = new Date(pubDate);
-  if(period === 'day') return (now - published) <= (24 * 60 * 60 * 1000);
-  if(period === 'week') return (now - published) <= (7 * 24 * 60 * 60 * 1000);
-  return true;
-}
-
-
-/* ---------- LOAD NEWS ---------- */
-async function loadNews() {
-  const container = document.getElementById("news");
-  const loading = document.getElementById("loading-message");
-  
-  container.innerHTML = "";
-  loading.style.display = 'block';
-
-  let articleCount = 0;
-
-  for (const src of NEWS_SOURCES) {
-    try {
-      const fetchUrl = RSS_PROXY + encodeURIComponent(src.url);
-      const res = await fetch(fetchUrl);
-      const data = await res.json();
-      
-      if (data && data.contents) {
-          // Pass the raw XML content to our parser
-          const items = parseXML(data.contents, false); 
-
-          items.forEach(item => {
-            if(!isRecent(item.pubDate)) return;
-
-            const hindi = isHindi(item.title);
-            // Filter logic
-            if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
-
-            const article = document.createElement("article");
-            article.innerHTML = `
-              <h2><a href="${item.link}" target="_blank" rel="noopener noreferrer">${item.title}</a></h2>
-              <div class="meta">${src.name} • ${new Date(item.pubDate).toDateString()}</div>
-              <p>${item.description.replace(/<[^>]+>/g, "").slice(0, 220)}…</p>
-            `;
-            container.appendChild(article);
-            articleCount++;
-          });
-      } else {
-        console.error(`RSS Proxy failed to return content for ${src.name}.`);
-      }
-
-    } catch(error) {
-      console.error(`Network or Parsing error for ${src.name}:`, error);
-    }
-  }
-  
-  loading.style.display = 'none';
-
-  if (articleCount === 0) {
-      container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--muted);">No news articles found for the selected period/language, or the RSS feeds failed to load.</div>`;
+    return items;
+  } catch (e) {
+    console.error(`Error fetching ${source.name}`, e);
+    return [];
   }
 }
 
-/* ---------- LOAD VIDEOS ---------- */
-async function loadVideos() {
-  const container = document.getElementById("videos");
-  const loading = document.getElementById("loading-message");
+// --- 2. RENDERING & FILTERING ---
 
-  container.innerHTML = "";
-  loading.style.display = 'block';
-
-  let videoCount = 0;
-
-  for (const ch of VIDEO_SOURCES) {
-    try {
-      const fetchUrl = RSS_PROXY + encodeURIComponent(ch.url);
-      const res = await fetch(fetchUrl);
-      const data = await res.json();
-
-      if (data && data.contents) {
-          // Pass the raw XML content to our parser
-          const items = parseXML(data.contents, true); 
-
-          items.forEach(v => {
-            if(!isRecent(v.pubDate)) return;
-
-            const hindi = isHindi(v.title);
-            if ((CURRENT_LANG === "hi" && !hindi) || (CURRENT_LANG === "en" && hindi)) return;
-
-            const article = document.createElement("article");
-            article.innerHTML = `
-              <h2><a href="${v.link}" target="_blank" rel="noopener noreferrer">▶ ${v.title}</a></h2>
-              <div class="meta">${ch.name} • ${new Date(v.pubDate).toDateString()}</div>
-            `;
-            container.appendChild(article);
-            videoCount++;
-          });
-      } else {
-        console.error(`RSS Proxy failed to return content for ${ch.name}.`);
-      }
-    } catch(error) {
-       console.error(`Network or Parsing error for ${ch.name}:`, error);
-    }
-  }
+function filterData(type, btn) {
+  // Update UI
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
   
-  loading.style.display = 'none';
-
-  if (videoCount === 0) {
-      container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--muted);">No videos found for the selected period/language, or the feeds failed to load.</div>`;
-  }
+  CURRENT_FILTER = type;
+  CURRENT_INDEX = 0; // Reset scroll position logic
+  document.getElementById('feed').innerHTML = ''; // Clear container
+  
+  applyFilterAndRender();
 }
 
-
-/* ---------- LANGUAGE TOGGLE ---------- */
-function setLang(lang, button) {
-  CURRENT_LANG = lang;
-  
-  document.querySelectorAll(".lang-toggle button").forEach(b => b.classList.remove("active"));
-  
-  if (button) {
-    button.classList.add("active");
+function applyFilterAndRender() {
+  // 1. Filter GLOBAL_ITEMS based on selection
+  if (CURRENT_FILTER === 'all') {
+    DISPLAY_BUFFER = GLOBAL_ITEMS;
   } else {
-    const defaultButton = document.querySelector(`.lang-toggle button[data-lang="${lang}"]`);
-    if (defaultButton) {
-        defaultButton.classList.add("active");
-    }
+    DISPLAY_BUFFER = GLOBAL_ITEMS.filter(item => item.type === CURRENT_FILTER);
   }
 
-  document.querySelectorAll("[data-en]").forEach(el => {
-    el.textContent = el.dataset[lang];
-  });
-
-  document.getElementById("search").placeholder =
-    lang === "hi" ? "खोजें..." : "Search headlines...";
-
-  const activeTab = document.querySelector('section.active').id;
-  if (activeTab === 'news') {
-    loadNews();
-  } else {
-    loadVideos();
-  }
+  // 2. Render first batch
+  renderBatch();
 }
 
-/* ---------- PERIOD TOGGLE ---------- */
-function updatePeriod() {
-  CURRENT_PERIOD = document.getElementById('period').value;
-  const activeTab = document.querySelector('section.active').id;
-  if (activeTab === 'news') {
-    loadNews();
-  } else {
-    loadVideos();
-  }
-}
+function renderBatch() {
+  const container = document.getElementById('feed');
+  const max = Math.min(CURRENT_INDEX + BATCH_SIZE, DISPLAY_BUFFER.length);
 
-/* ---------- TAB SWITCH ---------- */
-function switchTab(tab, button) {
-  document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
-  document.getElementById(tab).classList.add("active");
+  for (let i = CURRENT_INDEX; i < max; i++) {
+    const item = DISPLAY_BUFFER[i];
+    const card = document.createElement('article');
+    card.className = 'card';
 
-  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-  
-  if (button) {
-    button.classList.add("active");
-  } else {
-    const defaultButton = document.querySelector(`nav button[data-tab="${tab}"]`);
-    if (defaultButton) {
-        defaultButton.classList.add("active");
-    }
-  }
-
-  if (tab === 'news') {
-    loadNews();
-  } else {
-    loadVideos();
-  }
-}
-
-/* ---------- SEARCH FILTER ---------- */
-function filterContent() {
-  const q = document.getElementById("search").value.toLowerCase();
-  document.querySelectorAll("article").forEach(a => {
-    a.style.display = a.innerText.toLowerCase().includes(q) ? "block" : "none";
-  });
-}
-
-/* ---------- INITIAL LOAD - Simplified to avoid double load ---------- */
-document.addEventListener('DOMContentLoaded', (event) => {
-    // 1. Set initial tab to 'news' and activate the button
-    switchTab('news');
+    // HTML Construction
+    let mediaHTML = '';
+    let badgeHTML = item.type === 'video' 
+        ? `<span class="news-badge type-video">Video</span>` 
+        : `<span class="news-badge type-news">Article</span>`;
     
-    // 2. Set language to default ('hi') and activate button. 
-    // This call will trigger the first loadNews() inside setLang.
-    setLang(CURRENT_LANG); 
-});
-</script>
+    // Freshness Badge
+    let freshHTML = item.isRecent 
+        ? `<span class="fresh-dot" title="Posted in last 24h"></span> <span style="color:#22c55e; font-weight:bold; font-size:0.75rem; margin-right:8px;">NEW</span>` 
+        : ``;
 
+    if (item.type === 'video' && item.thumbnail) {
+      mediaHTML = `
+        <a href="${item.link}" target="_blank" class="card-media">
+          <img src="${item.thumbnail}" alt="${item.title}" loading="lazy">
+          <div class="play-icon">▶</div>
+        </a>
+      `;
+    }
+
+    // Snippet logic
+    let snippetHTML = '';
+    if(item.type === 'news' && item.desc) {
+        snippetHTML = `<p class="card-excerpt">${item.desc.substring(0, 150)}...</p>`;
+    }
+
+    card.innerHTML = `
+      ${mediaHTML}
+      <div class="card-content">
+        <div>
+          ${badgeHTML}
+          <h2 class="card-title"><a href="${item.link}" target="_blank">${item.title}</a></h2>
+          ${snippetHTML}
+        </div>
+        <div class="card-meta">
+          <span class="source-name">${item.sourceIcon} ${item.sourceName}</span>
+          <span>${freshHTML}${item.dateStr}</span>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(card);
+  }
+
+  CURRENT_INDEX = max;
+  
+  // Hide loader if no more items
+  if (CURRENT_INDEX >= DISPLAY_BUFFER.length) {
+    // End of list
+  }
+}
+
+// --- 3. INFINITE SCROLL OBSERVER ---
+
+const sentinel = document.getElementById('sentinel');
+const observer = new IntersectionObserver((entries) => {
+  if (entries[0].isIntersecting) {
+    if (DISPLAY_BUFFER.length > 0 && CURRENT_INDEX < DISPLAY_BUFFER.length) {
+       // Add a small delay for UI feel
+       setTimeout(() => renderBatch(), 300);
+    }
+  }
+});
+
+observer.observe(sentinel);
+
+// --- INITIALIZE ---
+window.addEventListener('DOMContentLoaded', fetchAllData);
+
+</script>
 </body>
 </html>
