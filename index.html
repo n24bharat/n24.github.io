@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="UTF-8" />
   <title>Independent India News Monitor</title>
@@ -131,12 +131,12 @@
 
 <div class="top-bar">
 <nav>
-  <button class="active" data-tab="news" onclick="switchTab('news', this)">📰 <span data-en="News" data-hi="समाचार">News</span></button>
-  <button data-tab="videos" onclick="switchTab('videos', this)">🎥 <span data-en="Videos" data-hi="वीडियो">Videos</span></button>
+  <button class="active" data-tab="news" onclick="switchTab('news', this)">📰 <span data-en="News" data-hi="समाचार">समाचार</span></button>
+  <button data-tab="videos" onclick="switchTab('videos', this)">🎥 <span data-en="Videos" data-hi="वीडियो">वीडियो</span></button>
 </nav>
 <div class="lang-toggle">
-  <button class="active" data-lang="en" onclick="setLang('en', this)">EN</button>
-  <button data-lang="hi" onclick="setLang('hi', this)">हिंदी</button>
+  <button data-lang="en" onclick="setLang('en', this)">EN</button>
+  <button class="active" data-lang="hi" onclick="setLang('hi', this)">हिंदी</button>
 </div>
 </div>
 
@@ -165,7 +165,8 @@
 <script>
 // *** FINAL PROXY FIX: Switching to the robust XML proxy ***
 const RSS_PROXY = "https://api.allorigins.win/get?url=";
-let CURRENT_LANG = "en";
+// *** CHANGE THIS LINE ***
+let CURRENT_LANG = "hi"; 
 let CURRENT_PERIOD = "day"; // Default: 24 hours
 
 /* ---------- SOURCES (Dynamic Queries) ---------- */
