@@ -1,15 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>N24.in | Independent News Monitor</title>
-  <meta name="description" content="Real-time aggregator for independent Indian journalism. Tracking Ravish Kumar, The Wire, Satya Hindi, and critical analysis on politics, economy, and society." />
-  <meta name="keywords" content="Ravish Kumar, Dhruv Rathee, The Wire Hindi, Satya Hindi, Godi Media, Independent Journalism, Vote Chori, Electoral Bonds, Adani, Unemployment India" />
-
-  <meta property="og:title" content="N24.in | The Unreported Truth" />
-  <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Infobox_info_icon.svg/1200px-Infobox_info_icon.svg.png" />
+  <meta name="description" content="Aggregated news from independent Indian journalism sources." />
   
   <style>
     :root {
@@ -18,306 +14,224 @@
       --card: #ffffff;
       --text: #1f2937;
       --gray: #6b7280;
-      --border: #e5e7eb;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background: var(--bg);
       color: var(--text);
-      margin: 0;
-      padding: 0;
-      line-height: 1.5;
+      margin: 0; padding: 0;
     }
 
-    /* --- Header --- */
     header {
       background: #fff;
-      border-bottom: 2px solid var(--primary);
-      padding: 0.8rem 1rem;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .brand { font-size: 1.4rem; font-weight: 900; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 8px;}
-    .brand span { color: #000; font-weight: 300; font-size: 0.9rem; display: none; }
-    @media(min-width: 600px) { .brand span { display: inline; } }
-
-    .controls { display: flex; gap: 10px; align-items: center; }
-    
-    select {
-        padding: 6px 10px;
-        border-radius: 6px;
-        border: 1px solid #ddd;
-        background: #fff;
-        font-size: 0.85rem;
-        cursor: pointer;
-    }
-
-    /* --- Grid Layout --- */
-    main {
-      max-width: 1200px;
-      margin: 0 auto;
+      border-bottom: 3px solid var(--primary);
       padding: 1rem;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .brand { font-size: 1.5rem; font-weight: 900; color: var(--primary); text-decoration: none; }
+    
+    .controls select {
+        padding: 5px 10px; border-radius: 4px; border: 1px solid #ddd;
     }
 
+    main { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+    
     #feed-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.5rem;
+      gap: 20px;
+      opacity: 0; transition: opacity 0.5s;
     }
+    main.loaded #feed-grid { opacity: 1; }
 
-    /* --- Cards --- */
     .card {
-      background: var(--card);
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      border: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.2s, box-shadow 0.2s;
-      animation: fadeIn 0.5s ease-out;
+      background: var(--card); border-radius: 8px; overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: transform 0.2s;
+      display: flex; flex-direction: column;
     }
-    .card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
 
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* Media Area (Video/Image) */
-    .media-wrapper {
-      position: relative;
-      width: 100%;
-      padding-top: 56.25%; /* 16:9 Aspect Ratio */
-      background: #eee;
-      overflow: hidden;
+    .media {
+      position: relative; padding-top: 56.25%; background: #eee;
     }
-    .media-wrapper img {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      object-fit: cover;
-      transition: transform 0.3s;
+    .media img {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
     }
-    .card:hover .media-wrapper img { transform: scale(1.05); }
-    
     .type-badge {
-        position: absolute;
-        top: 10px; left: 10px;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.7rem;
-        font-weight: 700;
+        position: absolute; top: 8px; left: 8px;
+        background: rgba(0,0,0,0.7); color: #fff;
+        padding: 2px 6px; font-size: 0.7rem; border-radius: 3px;
         text-transform: uppercase;
-        color: #fff;
-        z-index: 2;
-    }
-    .type-video { background: rgba(220, 38, 38, 0.9); }
-    .type-news { background: rgba(37, 99, 235, 0.9); }
-
-    .play-icon {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        width: 40px; height: 40px;
-        background: rgba(0,0,0,0.6);
-        border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        color: white; font-size: 1.2rem;
-        z-index: 2;
     }
 
-    /* Content Area */
-    .content { padding: 1rem; display: flex; flex-direction: column; flex-grow: 1; }
-    
-    .source {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: var(--gray);
-        margin-bottom: 0.5rem;
-        display: flex; justify-content: space-between;
-    }
+    .content { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
+    .source { font-size: 0.75rem; color: var(--primary); font-weight: 700; margin-bottom: 5px; }
+    .title { font-size: 1.1rem; font-weight: 700; margin: 0 0 8px; line-height: 1.4; }
+    .title a { text-decoration: none; color: inherit; }
+    .desc { font-size: 0.9rem; color: #555; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .meta { margin-top: auto; padding-top: 10px; border-top: 1px solid #eee; font-size: 0.8rem; color: #888; }
 
-    h3 {
-        font-size: 1.05rem;
-        font-weight: 700;
-        line-height: 1.4;
-        margin: 0 0 0.5rem 0;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-    h3 a { color: inherit; text-decoration: none; }
-    h3 a:hover { color: var(--primary); }
-
-    .snippet {
-        font-size: 0.9rem;
-        color: #4b5563;
-        margin-bottom: 1rem;
-        line-height: 1.5;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .meta {
-        margin-top: auto;
-        padding-top: 0.8rem;
-        border-top: 1px solid #f3f4f6;
-        font-size: 0.8rem;
-        color: var(--gray);
-        display: flex; justify-content: space-between;
-    }
-
-    /* --- Skeleton Loading --- */
-    .skeleton { background: #e5e7eb; border-radius: 4px; }
-    .sk-card { height: 350px; background: #fff; border-radius: 10px; padding: 0; overflow: hidden; }
-    .sk-img { height: 180px; width: 100%; background: #e5e7eb; animation: pulse 1.5s infinite; }
-    .sk-content { padding: 1rem; }
-    .sk-line { height: 15px; margin-bottom: 10px; width: 90%; background: #e5e7eb; animation: pulse 1.5s infinite; }
-    .sk-line.short { width: 60%; }
-    
-    @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
-
-    /* Footer */
-    footer { text-align: center; padding: 2rem; color: var(--gray); font-size: 0.85rem; }
+    /* Loader */
+    #loader { text-align: center; padding: 40px; color: #666; }
   </style>
 </head>
 <body>
 
 <header>
-  <a href="#" class="brand">N24.in <span>| Independent India</span></a>
+  <a href="#" class="brand">N24.in</a>
   <div class="controls">
     <select id="timeFilter" onchange="applyFilters()">
-        <option value="24">Last 24 Hours</option>
-        <option value="168">Last 7 Days</option>
+        <option value="24" selected>Latest 24 Hours</option>
+        <option value="168">Latest Week</option>
         <option value="all">All Time</option>
     </select>
-    <div id="status" style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Updating...</div>
+    <span id="status" style="font-size: 0.8rem; margin-left: 10px;">Init...</span>
   </div>
 </header>
 
 <main>
-  <div id="feed-grid">
-    </div>
+  <div id="loader">Loading independent reports...</div>
+  <div id="feed-grid"></div>
 </main>
-
-<footer>
-  <p>© 2025 N24.in - Aggregating Public RSS Feeds. Content belongs to respective owners.</p>
-</footer>
-
-<script data-goatcounter="https://n24.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 
 <script>
 /**
- * CONFIGURATION
+ * SOURCES CONFIGURATION
+ * Now includes a 'backupUrl' for news sources.
+ * Primary: Direct RSS (Better quality)
+ * Backup: Google News RSS (High reliability)
  */
 const SOURCES = {
   news: [
-    { name: "The Wire Hindi", url: "https://thewirehindi.com/feed/" },
-    { name: "Satya Hindi", url: "https://satyahindi.com/feed/" },
-    { name: "Newslaundry", url: "https://www.newslaundry.com/feed" },
-    { name: "The Quint Hindi", url: "https://hindi.thequint.com/rss/all" },
-    { name: "BBC Hindi", url: "https://feeds.bbci.co.uk/hindi/rss.xml" },
-    { name: "DW Hindi", url: "https://rss.dw.com/xml/rss-hi-all" }
+    { 
+      name: "The Wire Hindi", 
+      url: "https://thewirehindi.com/feed/",
+      backupUrl: "https://news.google.com/rss/search?q=site:thewirehindi.com&hl=hi&gl=IN&ceid=IN:hi"
+    },
+    { 
+      name: "Satya Hindi", 
+      url: "https://satyahindi.com/feed/",
+      backupUrl: "https://news.google.com/rss/search?q=site:satyahindi.com&hl=hi&gl=IN&ceid=IN:hi"
+    },
+    { 
+      name: "Newslaundry", 
+      url: "https://www.newslaundry.com/feed",
+      backupUrl: "https://news.google.com/rss/search?q=site:newslaundry.com&hl=en-IN&gl=IN&ceid=IN:en"
+    },
+    { 
+      name: "The Quint Hindi", 
+      url: "https://hindi.thequint.com/rss/all",
+      backupUrl: "https://news.google.com/rss/search?q=site:hindi.thequint.com&hl=hi&gl=IN&ceid=IN:hi"
+    },
+    { 
+      name: "BBC Hindi", 
+      url: "https://feeds.bbci.co.uk/hindi/rss.xml",
+      backupUrl: "https://news.google.com/rss/search?q=site:bbc.com/hindi&hl=hi&gl=IN&ceid=IN:hi"
+    },
+    { 
+      name: "DW Hindi", 
+      url: "https://rss.dw.com/xml/rss-hi-all",
+      backupUrl: "https://news.google.com/rss/search?q=site:dw.com/hi&hl=hi&gl=IN&ceid=IN:hi"
+    }
   ],
   video: [
     { name: "Ravish Kumar", id: "UC0yXUUIaPVAqZLgRjvtMftw" },
-    { name: "Dhruv Rathee", id: "UC1rIVG8Kecn9h-PHRLlj4Jw" },
     { name: "Ajit Anjum", id: "UCkquFW943phrj5RbNqtqj4w" },
     { name: "Abhisar Sharma", id: "UCZtSbw6D_IK7CwYj0q9p1Gw" },
-    { name: "Satya Hindi", id: "UC3N0dJm-w1l_S8_d-eNl73A" },
+    { name: "Satya Hindi Video", id: "UC3N0dJm-w1l_S8_d-eNl73A" },
     { name: "Red Mike", id: "UCn3a70Dq3o5WGe5JKdC7YHQ" },
     { name: "Kapil Sibal", id: "UCY-i892p3fQ59i5lK3yR-4A" },
     { name: "Bolta Hindustan", id: "UCC5o5iCgM4V2rM2vYwJ2rEQ" },
     { name: "News24", id: "UCnu4tD50k_k9y6pI2xT9lQA" },
     { name: "The Deshbhakt", id: "UCi82q8cZfXz7g3yL-6tG27A" },
-    { name: "Lallantop", id: "UCx8Z14PpntdaxCt2hakbqlQ" },
-    { name: "Punya Prasun", id: "UCXCG3leC3eHChlU2OPWMk_A" }
+    { name: "Lallantop", id: "UCx8Z14PpntdaxCt2hakbqlQ" }
   ]
 };
 
-// Using 'allorigins' as it is more stable for RSS XML parsing than corsproxy.io
-const PROXY_URL = "https://api.allorigins.win/get?url=";
+// Proxies
+const PRIMARY_PROXY = "https://api.allorigins.win/get?url=";
+// Secondary proxy if needed (rarely used now with fallback logic)
+const BACKUP_PROXY = "https://corsproxy.io/?url=";
 
-// State
 let ALL_ITEMS = [];
 let ACTIVE_REQUESTS = 0;
-let IS_INITIAL_LOAD = true;
+let IS_RENDERED = false;
 
-// --- 1. INITIALIZATION & SKELETONS ---
+// --- 1. FETCH LOGIC ---
 
-function init() {
-    renderSkeletons(12); // Show 12 placeholder cards immediately
+async function init() {
+    updateStatus();
     
-    // Fetch News
-    SOURCES.news.forEach(src => fetchFeed(src.url, src.name, 'news'));
-    
-    // Fetch Videos (Concurrent)
+    // Fetch News with fallback logic
+    SOURCES.news.forEach(src => fetchWithFallback(src, 'news'));
+
+    // Fetch Videos (No fallback needed for YouTube usually, but robust logic applied)
     SOURCES.video.forEach(src => {
         const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${src.id}`;
-        fetchFeed(url, src.name, 'video');
+        fetchWithFallback({ name: src.name, url: url, isVideo: true }, 'video');
     });
 }
 
-function renderSkeletons(count) {
-    const grid = document.getElementById('feed-grid');
-    let html = '';
-    for(let i=0; i<count; i++) {
-        html += `
-        <div class="card sk-card">
-            <div class="sk-img"></div>
-            <div class="sk-content">
-                <div class="sk-line"></div>
-                <div class="sk-line"></div>
-                <div class="sk-line short"></div>
-            </div>
-        </div>`;
-    }
-    grid.innerHTML = html;
-}
-
-// --- 2. DATA FETCHING ---
-
-async function fetchFeed(url, sourceName, type) {
+async function fetchWithFallback(source, type) {
     ACTIVE_REQUESTS++;
     updateStatus();
 
+    // Attempt 1: Direct URL via Primary Proxy
+    let success = await tryFetch(source.url, source.name, type);
+
+    // Attempt 2: If failed and backup exists, try Backup URL
+    if (!success && source.backupUrl) {
+        console.warn(`⚠️ Switching to Google Backup for ${source.name}`);
+        success = await tryFetch(source.backupUrl, source.name, type);
+    }
+
+    ACTIVE_REQUESTS--;
+    updateStatus();
+    
+    // If we have items and haven't rendered yet (or have new items), render
+    if (ALL_ITEMS.length > 0) {
+        applyFilters();
+    }
+}
+
+async function tryFetch(url, sourceName, type) {
     try {
-        const response = await fetch(PROXY_URL + encodeURIComponent(url));
+        const response = await fetch(PRIMARY_PROXY + encodeURIComponent(url));
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
         const data = await response.json();
-        
         if (!data.contents) throw new Error("Empty Proxy Response");
-        
+
         const parser = new DOMParser();
         const xml = parser.parseFromString(data.contents, "text/xml");
+        
+        // Check for XML parse errors
+        if (xml.querySelector("parsererror")) throw new Error("XML Parse Error");
+
         const items = xml.querySelectorAll("item, entry");
+        if (items.length === 0) throw new Error("No items found in feed");
 
         items.forEach(entry => {
             const item = parseEntry(entry, sourceName, type);
             if (item) ALL_ITEMS.push(item);
         });
 
-        // Progressive Rendering: Update UI as data arrives (debounce slightly)
-        debounceRender();
+        return true; // Success
 
     } catch (e) {
-        console.warn(`Error loading ${sourceName}:`, e.message);
-    } finally {
-        ACTIVE_REQUESTS--;
-        updateStatus();
+        console.warn(`❌ Failed ${sourceName} (${url}): ${e.message}`);
+        return false; // Failed
     }
 }
 
 function parseEntry(entry, source, type) {
     try {
         const title = entry.querySelector("title")?.textContent || "";
-        if (title.length < 5) return null; // Skip junk
+        if (title.length < 5) return null;
 
         const pubDateStr = entry.querySelector("pubDate")?.textContent || entry.querySelector("published")?.textContent;
         const date = new Date(pubDateStr);
@@ -328,10 +242,9 @@ function parseEntry(entry, source, type) {
         let desc = "";
 
         if (type === 'video') {
-            // YouTube Logic
             link = entry.querySelector("link[rel='alternate']")?.getAttribute("href") || entry.querySelector("link")?.textContent;
             
-            // Robust Video ID extraction (covers shorts, embeds, standard)
+            // Smart Regex for Video IDs (Shorts, Watch, Embeds)
             const videoIdMatch = link.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([^&?\/]+)/);
             const videoId = videoIdMatch ? videoIdMatch[1] : null;
 
@@ -342,16 +255,20 @@ function parseEntry(entry, source, type) {
             // News Logic
             link = entry.querySelector("link")?.textContent;
             
-            // Clean Description
+            // Clean Google Redirects if present
+            if (link.includes("url=")) {
+                const match = link.match(/url=(.+?)(&|$)/);
+                if (match) link = decodeURIComponent(match[1]);
+            }
+
             const rawDesc = entry.querySelector("description")?.textContent || "";
             const tempDiv = document.createElement("div");
             tempDiv.innerHTML = rawDesc;
             
-            // Extract Image from description if present
+            // Try to find image in description
             const img = tempDiv.querySelector("img");
             if (img) thumb = img.src;
             
-            // Clean Text
             desc = tempDiv.textContent.substring(0, 160) + "...";
         }
 
@@ -370,68 +287,59 @@ function parseEntry(entry, source, type) {
     }
 }
 
-// --- 3. RENDERING & FILTERING ---
-
-let renderTimeout;
-function debounceRender() {
-    clearTimeout(renderTimeout);
-    renderTimeout = setTimeout(applyFilters, 500); // Wait 500ms before re-rendering
-}
+// --- 2. RENDER LOGIC ---
 
 function applyFilters() {
     const hours = document.getElementById('timeFilter').value;
     const now = new Date().getTime();
     
-    // Filter
     let filtered = ALL_ITEMS;
+    
+    // Time Filter
     if (hours !== 'all') {
         const cutoff = now - (parseInt(hours) * 60 * 60 * 1000);
         filtered = ALL_ITEMS.filter(item => item.timestamp > cutoff);
     }
 
-    // Sort: Newest First
+    // Sort Newest First
     filtered.sort((a, b) => b.timestamp - a.timestamp);
 
-    // Limit to 100 items for DOM performance
+    // Limit items for performance (render top 100)
     renderGrid(filtered.slice(0, 100));
 }
 
 function renderGrid(items) {
     const grid = document.getElementById('feed-grid');
+    const loader = document.getElementById('loader');
     
-    if (items.length === 0 && ACTIVE_REQUESTS > 0) return; // Keep skeletons if still loading initial batch
-    if (items.length === 0) {
-        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:2rem;">No updates found in this time period.</div>`;
-        return;
+    // Hide loader if we have items
+    if (items.length > 0) {
+        loader.style.display = 'none';
+        document.querySelector('main').classList.add('loaded');
     }
 
     grid.innerHTML = items.map(item => {
         let mediaHTML = '';
         
-        // Show media if it's a video OR if it's a news item with an extracted image
         if (item.thumb) {
             mediaHTML = `
-            <a href="${item.link}" target="_blank" class="media-wrapper">
-                <span class="type-badge ${item.type === 'video' ? 'type-video' : 'type-news'}">${item.type}</span>
+            <a href="${item.link}" target="_blank" class="media">
+                <span class="type-badge">${item.type}</span>
                 <img src="${item.thumb}" loading="lazy" onerror="this.style.display='none'">
-                ${item.type === 'video' ? '<div class="play-icon">▶</div>' : ''}
             </a>`;
         }
 
-        // Snippet only for news
-        const snippetHTML = item.type === 'news' ? `<p class="snippet">${item.desc}</p>` : '';
+        const snippetHTML = item.type === 'news' ? `<p class="desc">${item.desc}</p>` : '';
 
         return `
         <article class="card">
             ${mediaHTML}
             <div class="content">
-                <div class="source">
-                    <span>${item.source}</span>
-                    <span>${timeAgo(item.date)}</span>
-                </div>
-                <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
+                <div class="source">${item.source}</div>
+                <h3 class="title"><a href="${item.link}" target="_blank">${item.title}</a></h3>
                 ${snippetHTML}
                 <div class="meta">
+                    <span>${timeAgo(item.date)}</span>
                     <span>Share ↗</span>
                 </div>
             </div>
@@ -443,11 +351,11 @@ function renderGrid(items) {
 function updateStatus() {
     const el = document.getElementById('status');
     if (ACTIVE_REQUESTS > 0) {
-        el.innerText = `Updating... (${ACTIVE_REQUESTS} active)`;
-        el.style.color = 'orange';
+        el.innerText = `Updating... (${ACTIVE_REQUESTS})`;
+        el.style.color = '#e65100'; // Orange
     } else {
         el.innerText = `● Live`;
-        el.style.color = 'green';
+        el.style.color = '#2e7d32'; // Green
     }
 }
 
@@ -455,10 +363,8 @@ function timeAgo(date) {
     const seconds = Math.floor((new Date() - date) / 1000);
     let interval = seconds / 3600;
     if (interval > 24) return Math.floor(interval/24) + "d ago";
-    if (interval > 1) return Math.floor(interval) + "h ago";
-    interval = seconds / 60;
-    if (interval > 1) return Math.floor(interval) + "m ago";
-    return "Just now";
+    if (interval >= 1) return Math.floor(interval) + "h ago";
+    return Math.floor(seconds / 60) + "m ago";
 }
 
 // Start
