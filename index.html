@@ -1,26 +1,24 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>N24.in | Independent News Monitor - Ravish, The Wire, Satya Hindi & Critical Analysis</title>
-  <meta name="description" content="India's largest real-time aggregator for independent, neutral, and critical journalism. Tracking political accountability, economic crises (girta rupaiya, unemployment), corruption scandals, electoral bonds (chanda lo dhanda do), Adani Group news, and social justice movements." />
-  
-  <meta name="keywords" content="vote chori, election rigging, voter fraud allegations, ballot tampering, EVM hacking, free and fair elections, election transparency, political accountability, campaign funding, political rallies, election manifesto, voter turnout, booth capturing, election commission updates, political debates, election promises, political slogans, democracy in action, election reforms, political campaigns, opposition unity, ruling party strategies, election results live, political alliances, vote bank politics, election surveys, political opinion polls, election news updates, political controversies, election fact-checking, political speeches, election rallies live, political propaganda, election monitoring, political activism, election watchdogs, political satire, political memes, election coverage, political analysis, election trends, political journalism, election debates live, political interviews, election day updates, political fact-check, election fraud prevention, political transparency, election law changes, political reforms, election awareness campaigns, girta rupaiya, falling rupee, currency depreciation, forex market trends, inflation rate, rising prices, cost of living crisis, GDP growth rate, economic slowdown, unemployment rate, job market trends, stock market crash, share market updates, commodity prices, gold price today, crude oil prices, fuel price hike, petrol diesel rates, budget 2025, fiscal deficit, trade deficit, exports and imports, economic reforms, taxation policy, GST updates, income tax rules, startup funding, venture capital trends, fintech growth, digital payments, cryptocurrency trends, bitcoin price, blockchain adoption, economic inequality, wealth gap, poverty reduction, rural economy, urban economy, industrial growth, manufacturing sector, service sector growth, agricultural reforms, farmer protests, farm loan waivers, MSME growth, economic stimulus, foreign investment, FDI policy, economic sanctions, global trade wars, supply chain disruptions, recession fears, economic recovery, green economy, sustainable finance, renewable energy investments, corruption scandals, bribery cases, money laundering, black money, hawala transactions, political corruption, corporate lobbying, scam investigations, whistleblower cases, anti-corruption laws, transparency in governance, public accountability, misuse of public funds, procurement scams, tender manipulation, nepotism in politics, favoritism in contracts, judicial corruption, police corruption, bureaucratic corruption, governance reforms, RTI activism, public interest litigation, citizen watchdogs, ethics in politics, governance transparency, anti-bribery campaigns, corruption index ranking, fraud detection, financial irregularities, audit reports, scam exposés, investigative journalism, governance failures, misuse of power, political funding transparency, shell companies, offshore accounts, tax evasion, illicit wealth, governance best practices, public sector reforms, e-governance, digital transparency tools, Adani group news, corporate mergers, acquisitions, IPO launches, stock market movers, billionaire rankings, corporate governance, business ethics, industrial projects, infrastructure development, renewable energy projects, mining sector news, logistics industry trends, shipping industry updates, aviation sector growth, telecom industry competition, tech startups, unicorn companies, e-commerce growth, retail sector trends, FMCG market, manufacturing hubs, export industries, import policies, supply chain innovations, automation in industry, AI in business, corporate layoffs, hiring trends, workplace culture, remote work trends, hybrid work models, business conferences, trade fairs, investment summits, corporate social responsibility, ESG reporting, sustainable business models, green manufacturing, digital transformation, fintech innovations, business analytics, market research trends, consumer behavior shifts, brand marketing strategies, influencer marketing, advertising trends, product launches, customer experience, loyalty programs, youth activism, student protests, women empowerment, gender equality, LGBTQ+ rights, climate change activism, environmental protests, clean energy campaigns, water conservation, air pollution control, urban development, smart cities, rural development, healthcare reforms, vaccination drives, mental health awareness, education reforms, skill development, digital literacy, social media trends, viral challenges, meme culture, influencer trends, online communities, podcast growth, streaming platforms, OTT releases, film industry news, music industry trends, sports events, cricket world cup, football leagues, Olympic updates, esports tournaments, gaming trends, fashion trends, streetwear culture, traditional crafts revival, food trends, vegan lifestyle, fitness challenges, wellness retreats, meditation" />
+  <title>N24.in | Independent News Monitor</title>
+  <meta name="description" content="Real-time aggregator for independent Indian journalism. Tracking Ravish Kumar, The Wire, Satya Hindi, and critical analysis on politics, economy, and society." />
+  <meta name="keywords" content="Ravish Kumar, Dhruv Rathee, The Wire Hindi, Satya Hindi, Godi Media, Independent Journalism, Vote Chori, Electoral Bonds, Adani, Unemployment India" />
 
-  <meta property="og:title" content="N24.in | The Unreported Truth of India" />
-  <meta property="og:description" content="Access independent analysis and news covering the state of democracy, economy, and society in India." />
+  <meta property="og:title" content="N24.in | The Unreported Truth" />
   <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Infobox_info_icon.svg/1200px-Infobox_info_icon.svg.png" />
   
   <style>
     :root {
-      --primary: #b91c1c;
-      --secondary: #1d4ed8;
-      --bg: #f9fafb;
+      --primary: #d32f2f;
+      --bg: #f3f4f6;
       --card: #ffffff;
-      --text: #111827;
+      --text: #1f2937;
       --gray: #6b7280;
+      --border: #e5e7eb;
     }
 
     body {
@@ -29,447 +27,444 @@
       color: var(--text);
       margin: 0;
       padding: 0;
-      line-height: 1.6;
+      line-height: 1.5;
     }
 
-    /* --- HEADER --- */
+    /* --- Header --- */
     header {
       background: #fff;
       border-bottom: 2px solid var(--primary);
-      padding: 1rem;
+      padding: 0.8rem 1rem;
       position: sticky;
       top: 0;
       z-index: 1000;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .logo { font-size: 1.5rem; font-weight: 900; color: var(--primary); text-decoration: none; }
-    .logo span { color: #000; font-weight: 300; font-size: 0.9rem; margin-left: 5px; }
+    .brand { font-size: 1.4rem; font-weight: 900; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 8px;}
+    .brand span { color: #000; font-weight: 300; font-size: 0.9rem; display: none; }
+    @media(min-width: 600px) { .brand span { display: inline; } }
+
+    .controls { display: flex; gap: 10px; align-items: center; }
     
-    .status-badge {
-      font-size: 0.75rem;
-      background: #eee;
-      padding: 4px 8px;
-      border-radius: 12px;
-      color: #444;
+    select {
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        background: #fff;
+        font-size: 0.85rem;
+        cursor: pointer;
     }
 
-    /* --- LAYOUT --- */
-    main { max-width: 900px; margin: 0 auto; padding: 15px; }
-    
-    #feed-stream {
+    /* --- Grid Layout --- */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    #feed-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    /* --- Cards --- */
+    .card {
+      background: var(--card);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      animation: fadeIn 0.5s ease-out;
     }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
 
-    /* --- CARD DESIGN --- */
-    .news-card {
-      background: var(--card);
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      overflow: hidden;
-      border: 1px solid #e5e7eb;
-      transition: transform 0.2s;
-    }
-    .news-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    .card-body { padding: 15px; }
-
-    .source-tag {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: var(--secondary);
-      margin-bottom: 5px;
-      display: block;
-    }
-
-    .card-title {
-      font-size: 1.15rem;
-      margin: 0 0 10px 0;
-      font-weight: 700;
-      line-height: 1.4;
-    }
-    .card-title a { text-decoration: none; color: inherit; }
-    .card-title a:hover { color: var(--primary); text-decoration: underline; }
-
-    .card-desc {
-      font-size: 0.95rem;
-      color: #374151;
-      margin-bottom: 12px;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .card-meta {
-      font-size: 0.8rem;
-      color: var(--gray);
-      border-top: 1px solid #f3f4f6;
-      padding-top: 10px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    /* VIDEO STYLES */
-    .video-wrapper {
+    /* Media Area (Video/Image) */
+    .media-wrapper {
       position: relative;
-      padding-top: 56.25%; /* 16:9 */
-      background: #000;
+      width: 100%;
+      padding-top: 56.25%; /* 16:9 Aspect Ratio */
+      background: #eee;
+      overflow: hidden;
     }
-    .video-wrapper img {
+    .media-wrapper img {
       position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.9;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s;
     }
-    .play-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,0.2);
+    .card:hover .media-wrapper img { transform: scale(1.05); }
+    
+    .type-badge {
+        position: absolute;
+        top: 10px; left: 10px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #fff;
+        z-index: 2;
     }
-    .play-icon {
-      font-size: 3rem;
-      color: #fff;
-      filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
-      transition: transform 0.2s;
-    }
-    .news-card:hover .play-icon { transform: scale(1.1); color: #ff0000; }
+    .type-video { background: rgba(220, 38, 38, 0.9); }
+    .type-news { background: rgba(37, 99, 235, 0.9); }
 
-    /* --- LOADER --- */
-    .loader {
-      text-align: center;
-      padding: 20px;
-      color: var(--gray);
-      font-style: italic;
+    .play-icon {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px; height: 40px;
+        background: rgba(0,0,0,0.6);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 1.2rem;
+        z-index: 2;
     }
+
+    /* Content Area */
+    .content { padding: 1rem; display: flex; flex-direction: column; flex-grow: 1; }
+    
+    .source {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--gray);
+        margin-bottom: 0.5rem;
+        display: flex; justify-content: space-between;
+    }
+
+    h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        line-height: 1.4;
+        margin: 0 0 0.5rem 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    h3 a { color: inherit; text-decoration: none; }
+    h3 a:hover { color: var(--primary); }
+
+    .snippet {
+        font-size: 0.9rem;
+        color: #4b5563;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .meta {
+        margin-top: auto;
+        padding-top: 0.8rem;
+        border-top: 1px solid #f3f4f6;
+        font-size: 0.8rem;
+        color: var(--gray);
+        display: flex; justify-content: space-between;
+    }
+
+    /* --- Skeleton Loading --- */
+    .skeleton { background: #e5e7eb; border-radius: 4px; }
+    .sk-card { height: 350px; background: #fff; border-radius: 10px; padding: 0; overflow: hidden; }
+    .sk-img { height: 180px; width: 100%; background: #e5e7eb; animation: pulse 1.5s infinite; }
+    .sk-content { padding: 1rem; }
+    .sk-line { height: 15px; margin-bottom: 10px; width: 90%; background: #e5e7eb; animation: pulse 1.5s infinite; }
+    .sk-line.short { width: 60%; }
+    
+    @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+
+    /* Footer */
+    footer { text-align: center; padding: 2rem; color: var(--gray); font-size: 0.85rem; }
   </style>
 </head>
 <body>
 
 <header>
-  <a href="#" class="logo">N24.in <span>| Independent India</span></a>
-  <div class="status-badge" id="conn-status">Initializing...</div>
+  <a href="#" class="brand">N24.in <span>| Independent India</span></a>
+  <div class="controls">
+    <select id="timeFilter" onchange="applyFilters()">
+        <option value="24">Last 24 Hours</option>
+        <option value="168">Last 7 Days</option>
+        <option value="all">All Time</option>
+    </select>
+    <div id="status" style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Updating...</div>
+  </div>
 </header>
 
 <main>
-  <div id="loader" class="loader">Fetching latest reports from independent sources...</div>
-  <div id="feed-stream"></div>
+  <div id="feed-grid">
+    </div>
 </main>
 
-<span style="display:none;">
-  <section>
-    <h3>Deep Dive: Political, Economic & Corruption Trends in India (The Unreported Analysis)</h3>
-    <p>
-      <strong>Political Trends & Election Integrity:</strong> N24.in serves as a crucial hub for tracking the biggest debates in Indian democracy. We aggregate independent coverage surrounding sensitive issues like **vote chori**, **EVM hacking** controversies, and various **voter fraud allegations**. Journalists are scrutinizing **election transparency**, **political accountability**, and the ethics of **campaign funding**. The platform highlights critical analysis of **election manifesto** scrutiny, monitoring **voter turnout**, and reports on **booth capturing** incidents. Key topics include debates on **election reforms**, the strategies of **opposition unity**, and the core principles of **free and fair elections** and **democracy in action** amidst growing concerns over **political propaganda**. We offer comprehensive coverage of **political debates**, **election surveys**, and **political opinion polls** that mainstream media often avoids.
-    </p>
-    <p>
-      <strong>Economic & Financial Distress:</strong> Independent sources provide essential context on India's macroeconomic challenges. The continuous debate on **girta rupaiya** (falling rupee) and **currency depreciation** is linked to broader concerns about the **inflation rate** and a growing **cost of living crisis**. Coverage focuses on the real **unemployment rate** and shifts in **job market trends**. The platform tracks key movements in the **stock market** and analyzes large corporate houses, especially **Adani group news** and its impact on the nation's financial stability. Financial investigative journalism exposes failures in **taxation policy**, **GST updates**, and the impact of the **fiscal deficit**. We also cover the impact of **global trade wars**, **supply chain disruptions**, and the necessary shift towards **green economy** and **renewable energy investments** for a sustainable **economic recovery**.
-    </p>
-    <p>
-      <strong>Corruption, Governance & Corporate Scrutiny:</strong> Independent journalism is vital for exposing **corruption scandals**, **bribery cases**, and **money laundering** operations. The Supreme Court's action on **Electoral Bonds** has led to deep investigations into **political corruption** and **corporate lobbying**, central to the 'chanda lo dhanda do' narrative. N24.in aggregates reports on **misuse of public funds**, **tender manipulation**, and failures in **transparency in governance**. We feature content focusing on **whistleblower cases**, the need for stronger **anti-corruption laws**, and the role of **RTI activism** and **public interest litigation** in ensuring **public accountability**. This section also monitors **Adani group news** regarding corporate governance and financial irregularities exposed by international reports.
-    </p>
-    <p>
-      <strong>Social Justice & Cultural Shifts:</strong> Beyond politics and economics, the platform captures critical social movements. We highlight **youth activism**, **student protests**, and crucial debates on **women empowerment** and **gender equality**. Focus areas include **healthcare reforms**, the growing crisis of **mental health awareness**, and gaps in **education reforms** and **skill development**. We track trends in **social media** and analyze the impact of **digital literacy** and **online communities** on public discourse. The independent media remains dedicated to covering issues like **farmer protests**, the state of the **rural economy**, and efforts towards **water conservation** and **air pollution control** in major cities.
-    </p>
-    
-    <div class="tags-cloud">
-      <span class="seo-tag">#VoteChori</span>
-      <span class="seo-tag">#EVMHacking</span>
-      <span class="seo-tag">#GirtaRupaiya</span>
-      <span class="seo-tag">#UnemploymentRate</span>
-      <span class="seo-tag">#AdaniGroupNews</span>
-      <span class="seo-tag">#CorruptionScandals</span>
-      <span class="seo-tag">#ElectoralBonds</span>
-      <span class="seo-tag">#InflationRate</span>
-      <span class="seo-tag">#FarmerProtests</span>
-      <span class="seo-tag">#WomenEmpowerment</span>
-      <span class="seo-tag">#DemocracyInAction</span>
-      <span class="seo-tag">#InvestigativeJournalism</span>
-    </div>
-  </section>
-</span>
-
 <footer>
-  <div style="text-align:center; padding: 20px; font-size: 0.8rem; color: #777;">
-    &copy; 2025 N24.in - Aggregating Public RSS Feeds for Educational Purposes. Content belongs to respective publishers.
-  </div>
+  <p>© 2025 N24.in - Aggregating Public RSS Feeds. Content belongs to respective owners.</p>
 </footer>
 
-<script data-goatcounter="https://n24.goatcounter.com/count" 
-        async src="//gc.zgo.at/count.js"></script>
+<script data-goatcounter="https://n24.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
   <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "c5b2b0d87e424dbb9e2235cca1ce9367"}'></script><!-- End Cloudflare Web Analytics -->
 <script>
 
+<script>
 /**
- * SOURCE CONFIGURATION 
- * (List of news sites and YouTube channels)
+ * CONFIGURATION
  */
 const SOURCES = {
   news: [
-    { name: "The Wire Hindi", url: "site:thewirehindi.com" },
-    { name: "Satya Hindi", url: "site:satyahindi.com" },
-    { name: "Newslaundry", url: "site:newslaundry.com" },
-    { name: "The Quint Hindi", url: "site:hindi.thequint.com" },
-    { name: "BBC News Hindi", url: "site:bbc.com/hindi" },
-    { name: "DW Hindi", url: "site:dw.com/hi" } 
-    // Removed: Scroll.in, Article 14, The News Minute
+    { name: "The Wire Hindi", url: "https://thewirehindi.com/feed/" },
+    { name: "Satya Hindi", url: "https://satyahindi.com/feed/" },
+    { name: "Newslaundry", url: "https://www.newslaundry.com/feed" },
+    { name: "The Quint Hindi", url: "https://hindi.thequint.com/rss/all" },
+    { name: "BBC Hindi", url: "https://feeds.bbci.co.uk/hindi/rss.xml" },
+    { name: "DW Hindi", url: "https://rss.dw.com/xml/rss-hi-all" }
   ],
   video: [
     { name: "Ravish Kumar", id: "UC0yXUUIaPVAqZLgRjvtMftw" },
     { name: "Dhruv Rathee", id: "UC1rIVG8Kecn9h-PHRLlj4Jw" },
     { name: "Ajit Anjum", id: "UCkquFW943phrj5RbNqtqj4w" },
     { name: "Abhisar Sharma", id: "UCZtSbw6D_IK7CwYj0q9p1Gw" },
-    { name: "News24 (Manak/Sandeep)", id: "UCnu4tD50k_k9y6pI2xT9lQA" },
-    { name: "The Lallantop", id: "UCx8Z14PpntdaxCt2hakbqlQ" },
-    { name: "Bolta Hindustan", id: "UCC5o5iCgM4V2rM2vYwJ2rEQ" },
-    // Removed: Shyam Meera Singh
+    { name: "Satya Hindi", id: "UC3N0dJm-w1l_S8_d-eNl73A" },
     { name: "Red Mike", id: "UCn3a70Dq3o5WGe5JKdC7YHQ" },
-    { name: "Punya Prasun Bajpai", id: "UCXCG3leC3eHChlU2OPWMk_A" },
-    { name: "Deshbhakt (Akash)", id: "UCi82q8cZfXz7g3yL-6tG27A" },
-    { name: "Satya Hindi (Video)", id: "UC3N0dJm-w1l_S8_d-eNl73A" },
-    { name: "Kapil Sibal", id: "UCY-i892p3fQ59i5lK3yR-4A" }
+    { name: "Kapil Sibal", id: "UCY-i892p3fQ59i5lK3yR-4A" },
+    { name: "Bolta Hindustan", id: "UCC5o5iCgM4V2rM2vYwJ2rEQ" },
+    { name: "News24", id: "UCnu4tD50k_k9y6pI2xT9lQA" },
+    { name: "The Deshbhakt", id: "UCi82q8cZfXz7g3yL-6tG27A" },
+    { name: "Lallantop", id: "UCx8Z14PpntdaxCt2hakbqlQ" },
+    { name: "Punya Prasun", id: "UCXCG3leC3eHChlU2OPWMk_A" }
   ]
 };
 
-// Reverted to the previous, known working CORS proxy
-const PROXY_URL = "https://corsproxy.io/?url=";
+// Using 'allorigins' as it is more stable for RSS XML parsing than corsproxy.io
+const PROXY_URL = "https://api.allorigins.win/get?url=";
 
-let FEED_ITEMS = [];
-let LOADING_COUNT = 0;
-let lastRenderedCount = 0; 
+// State
+let ALL_ITEMS = [];
+let ACTIVE_REQUESTS = 0;
+let IS_INITIAL_LOAD = true;
 
-// *** Infinite Scroll Variables ***
-let DISPLAY_LIMIT = 20; // Initial number of items to display
-const INCREMENT_STEP = 15; // Number of items to add on scroll
+// --- 1. INITIALIZATION & SKELETONS ---
 
-
-/* --- DATA FETCHING --- */
-
-async function fetchNews(source) {
-  const rssUrl = `https://news.google.com/rss/search?q=${source.url}&hl=hi&gl=IN&ceid=IN:hi`;
-  await fetchAndParse(rssUrl, source.name, 'news');
-}
-
-async function fetchVideo(source) {
-  const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.id}`;
-  await fetchAndParse(rssUrl, source.name, 'video');
-}
-
-async function fetchAndParse(url, sourceName, type) {
-  LOADING_COUNT++;
-  updateStatus();
-
-  try {
-    const res = await fetch(PROXY_URL + encodeURIComponent(url));
-    if (!res.ok) throw new Error(`Network Error: ${res.status}`);
-    const text = await res.text();
+function init() {
+    renderSkeletons(12); // Show 12 placeholder cards immediately
     
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(text, "text/xml");
-    if (xml.querySelector("parsererror")) throw new Error("XML Parse Error");
-
-    const entries = xml.querySelectorAll("item, entry");
-
-    entries.forEach(entry => {
-      const title = entry.querySelector("title")?.textContent || "";
-      if(title.length < 10) return;
-
-      const pubDate = entry.querySelector("pubDate")?.textContent || entry.querySelector("published")?.textContent;
-      let link = "";
-      let thumb = "";
-      let snippet = "";
-
-      if (type === 'video') {
-        link = entry.querySelector("link[rel='alternate']")?.getAttribute('href') || entry.querySelector("link")?.textContent;
-        
-        // 1. Try to get namespaced yt:videoId or simple videoId
-        let vidId = entry.querySelector("yt\\:videoId")?.textContent || entry.querySelector("videoId")?.textContent; 
-        
-        // 2. Robust Fallback: Extract ID from the link (most reliable method for YouTube RSS)
-        if (!vidId && link) {
-             // Regex to capture the 'v=' parameter from standard YouTube URL
-            const match = link.match(/[?&]v=([^&]+)/);
-            if (match) {
-                vidId = match[1];
-            }
-        }
-
-        if(vidId) {
-            // Constructing the preferred medium-quality thumbnail URL
-            thumb = `https://i2.ytimg.com/vi/${vidId}/mqdefault.jpg`;
-        } else {
-            // Last resort: Check for <media:thumbnail> attribute URL
-            thumb = entry.querySelector("media\\:thumbnail")?.getAttribute('url');
-        }
-        
-      } else {
-        link = entry.querySelector("link")?.textContent;
-        const match = link.match(/url=(.+?)\&/);
-        if (match) link = decodeURIComponent(match[1]);
-        
-        const rawDesc = entry.querySelector("description")?.textContent || "";
-        const div = document.createElement("div");
-        div.innerHTML = rawDesc;
-        snippet = div.innerText.substring(0, 160) + "...";
-      }
-
-      FEED_ITEMS.push({
-        source: sourceName,
-        title: title,
-        link: link,
-        date: new Date(pubDate),
-        type: type,
-        thumb: thumb,
-        snippet: snippet
-      });
+    // Fetch News
+    SOURCES.news.forEach(src => fetchFeed(src.url, src.name, 'news'));
+    
+    // Fetch Videos (Concurrent)
+    SOURCES.video.forEach(src => {
+        const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${src.id}`;
+        fetchFeed(url, src.name, 'video');
     });
-  } catch (e) {
-    console.warn(`Failed to load ${sourceName} (${type}): ${e.message}`);
-  } finally {
-    LOADING_COUNT--;
+}
+
+function renderSkeletons(count) {
+    const grid = document.getElementById('feed-grid');
+    let html = '';
+    for(let i=0; i<count; i++) {
+        html += `
+        <div class="card sk-card">
+            <div class="sk-img"></div>
+            <div class="sk-content">
+                <div class="sk-line"></div>
+                <div class="sk-line"></div>
+                <div class="sk-line short"></div>
+            </div>
+        </div>`;
+    }
+    grid.innerHTML = html;
+}
+
+// --- 2. DATA FETCHING ---
+
+async function fetchFeed(url, sourceName, type) {
+    ACTIVE_REQUESTS++;
     updateStatus();
-    
-    // *** FLICKERING FIX: Only sort and render once all data is loaded. ***
-    if (LOADING_COUNT === 0) {
-      FEED_ITEMS.sort((a, b) => b.date - a.date);
-      // Clear the container before the initial render to ensure stability
-      document.getElementById("feed-stream").innerHTML = '';
-      lastRenderedCount = 0;
-      render(); 
+
+    try {
+        const response = await fetch(PROXY_URL + encodeURIComponent(url));
+        const data = await response.json();
+        
+        if (!data.contents) throw new Error("Empty Proxy Response");
+        
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(data.contents, "text/xml");
+        const items = xml.querySelectorAll("item, entry");
+
+        items.forEach(entry => {
+            const item = parseEntry(entry, sourceName, type);
+            if (item) ALL_ITEMS.push(item);
+        });
+
+        // Progressive Rendering: Update UI as data arrives (debounce slightly)
+        debounceRender();
+
+    } catch (e) {
+        console.warn(`Error loading ${sourceName}:`, e.message);
+    } finally {
+        ACTIVE_REQUESTS--;
+        updateStatus();
     }
-  }
 }
 
-/* --- RENDERING --- */
-function createCardHtml(item) {
-    let mediaHtml = '';
-    let badgeColor = item.type === 'video' ? '#ef4444' : '#2563eb';
-    
-    // Ensure we only show the video block if a thumbnail URL exists
-    if (item.type === 'video' && item.thumb) {
-      mediaHtml = `
-        <a href="${item.link}" target="_blank" class="video-wrapper">
-          <img src="${item.thumb}" loading="lazy" alt="Video Thumbnail">
-          <div class="play-overlay"><div class="play-icon">▶</div></div>
-        </a>`;
-    }
+function parseEntry(entry, source, type) {
+    try {
+        const title = entry.querySelector("title")?.textContent || "";
+        if (title.length < 5) return null; // Skip junk
 
-    const article = document.createElement('article');
-    article.className = 'news-card';
-    article.innerHTML = `
-      ${mediaHtml}
-      <div class="card-body">
-        <span class="source-tag" style="color:${badgeColor}">
-          ${item.type === 'video' ? '📺' : '📰'} ${item.source}
-        </span>
-        <h2 class="card-title">
-          <a href="${item.link}" target="_blank">${item.title}</a>
-        </h2>
-        ${item.snippet && item.type === 'news' ? `<p class="card-desc">${item.snippet}</p>` : ''}
-        <div class="card-meta">
-          <span>${timeAgo(item.date)}</span>
-          <span>Share ↗</span>
-        </div>
-      </div>`;
-    return article;
+        const pubDateStr = entry.querySelector("pubDate")?.textContent || entry.querySelector("published")?.textContent;
+        const date = new Date(pubDateStr);
+        if (isNaN(date.getTime())) return null;
+
+        let link = "";
+        let thumb = null;
+        let desc = "";
+
+        if (type === 'video') {
+            // YouTube Logic
+            link = entry.querySelector("link[rel='alternate']")?.getAttribute("href") || entry.querySelector("link")?.textContent;
+            
+            // Robust Video ID extraction (covers shorts, embeds, standard)
+            const videoIdMatch = link.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([^&?\/]+)/);
+            const videoId = videoIdMatch ? videoIdMatch[1] : null;
+
+            if (videoId) {
+                thumb = `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
+            }
+        } else {
+            // News Logic
+            link = entry.querySelector("link")?.textContent;
+            
+            // Clean Description
+            const rawDesc = entry.querySelector("description")?.textContent || "";
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = rawDesc;
+            
+            // Extract Image from description if present
+            const img = tempDiv.querySelector("img");
+            if (img) thumb = img.src;
+            
+            // Clean Text
+            desc = tempDiv.textContent.substring(0, 160) + "...";
+        }
+
+        return {
+            title,
+            link,
+            date,
+            timestamp: date.getTime(),
+            source,
+            type,
+            thumb,
+            desc
+        };
+    } catch (e) {
+        return null;
+    }
 }
 
-function render() {
-  const container = document.getElementById("feed-stream");
-  
-  // Calculate the total number of items to display now
-  const totalItemsToDisplay = Math.min(FEED_ITEMS.length, DISPLAY_LIMIT);
+// --- 3. RENDERING & FILTERING ---
 
-  // If we have nothing new to display, stop.
-  if (totalItemsToDisplay <= lastRenderedCount) {
-      return; 
-  }
-  
-  const fragment = document.createDocumentFragment();
-  
-  // Loop starts from the last rendered item, only adding new ones
-  for (let i = lastRenderedCount; i < totalItemsToDisplay; i++) {
-    const item = FEED_ITEMS[i];
-    fragment.appendChild(createCardHtml(item));
-  }
-  
-  // Append the new batch to the DOM once
-  container.appendChild(fragment);
-  // Update the count of what is now rendered
-  lastRenderedCount = totalItemsToDisplay; 
-  
-  const loaderEl = document.getElementById('loader');
-  if(FEED_ITEMS.length > 0 && LOADING_COUNT === 0) {
-      loaderEl.style.display = 'none';
-  } else if (FEED_ITEMS.length > 0 && LOADING_COUNT > 0) {
-      loaderEl.style.display = 'block'; 
-  }
+let renderTimeout;
+function debounceRender() {
+    clearTimeout(renderTimeout);
+    renderTimeout = setTimeout(applyFilters, 500); // Wait 500ms before re-rendering
+}
+
+function applyFilters() {
+    const hours = document.getElementById('timeFilter').value;
+    const now = new Date().getTime();
+    
+    // Filter
+    let filtered = ALL_ITEMS;
+    if (hours !== 'all') {
+        const cutoff = now - (parseInt(hours) * 60 * 60 * 1000);
+        filtered = ALL_ITEMS.filter(item => item.timestamp > cutoff);
+    }
+
+    // Sort: Newest First
+    filtered.sort((a, b) => b.timestamp - a.timestamp);
+
+    // Limit to 100 items for DOM performance
+    renderGrid(filtered.slice(0, 100));
+}
+
+function renderGrid(items) {
+    const grid = document.getElementById('feed-grid');
+    
+    if (items.length === 0 && ACTIVE_REQUESTS > 0) return; // Keep skeletons if still loading initial batch
+    if (items.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:2rem;">No updates found in this time period.</div>`;
+        return;
+    }
+
+    grid.innerHTML = items.map(item => {
+        let mediaHTML = '';
+        
+        // Show media if it's a video OR if it's a news item with an extracted image
+        if (item.thumb) {
+            mediaHTML = `
+            <a href="${item.link}" target="_blank" class="media-wrapper">
+                <span class="type-badge ${item.type === 'video' ? 'type-video' : 'type-news'}">${item.type}</span>
+                <img src="${item.thumb}" loading="lazy" onerror="this.style.display='none'">
+                ${item.type === 'video' ? '<div class="play-icon">▶</div>' : ''}
+            </a>`;
+        }
+
+        // Snippet only for news
+        const snippetHTML = item.type === 'news' ? `<p class="snippet">${item.desc}</p>` : '';
+
+        return `
+        <article class="card">
+            ${mediaHTML}
+            <div class="content">
+                <div class="source">
+                    <span>${item.source}</span>
+                    <span>${timeAgo(item.date)}</span>
+                </div>
+                <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
+                ${snippetHTML}
+                <div class="meta">
+                    <span>Share ↗</span>
+                </div>
+            </div>
+        </article>
+        `;
+    }).join('');
 }
 
 function updateStatus() {
-  const el = document.getElementById("conn-status");
-  const loaderEl = document.getElementById('loader');
-
-  if (LOADING_COUNT > 0) {
-    el.innerText = `Updating... (${LOADING_COUNT} active)`;
-    el.style.backgroundColor = "#fff7ed";
-    loaderEl.style.opacity = '1';
-  } else {
-    el.innerText = `Live | ${FEED_ITEMS.length} Reports`;
-    el.style.backgroundColor = "#dcfce7";
-    loaderEl.style.opacity = '0';
-  }
+    const el = document.getElementById('status');
+    if (ACTIVE_REQUESTS > 0) {
+        el.innerText = `Updating... (${ACTIVE_REQUESTS} active)`;
+        el.style.color = 'orange';
+    } else {
+        el.innerText = `● Live`;
+        el.style.color = 'green';
+    }
 }
 
 function timeAgo(date) {
-  const seconds = Math.floor((new Date() - date) / 1000);
-  let interval = seconds / 3600;
-  if (interval > 1) return Math.floor(interval) + "h ago";
-  interval = seconds / 60;
-  if (interval > 1) return Math.floor(interval) + "m ago";
-  return "Just now";
+    const seconds = Math.floor((new Date() - date) / 1000);
+    let interval = seconds / 3600;
+    if (interval > 24) return Math.floor(interval/24) + "d ago";
+    if (interval > 1) return Math.floor(interval) + "h ago";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + "m ago";
+    return "Just now";
 }
 
-// *** Infinite Scroll Logic ***
-function checkScroll() {
-  const scrollHeight = document.documentElement.scrollHeight;
-  const scrollTop = document.documentElement.scrollTop;
-  const clientHeight = document.documentElement.clientHeight;
-  
-  // Check if user is near the bottom (e.g., within 500px of the end)
-  // AND if there is more content available in FEED_ITEMS than what is currently displayed
-  if (scrollTop + clientHeight >= scrollHeight - 500 && DISPLAY_LIMIT < FEED_ITEMS.length) {
-    DISPLAY_LIMIT += INCREMENT_STEP;
-    // Rerender will only add the difference due to the DOM append logic
-    render();
-  }
-}
-
-
-/* --- INITIALIZATION --- */
-window.addEventListener('DOMContentLoaded', () => {
-  
-  // 1. Fetch News First (Priority)
-  SOURCES.news.forEach((src, index) => {
-    setTimeout(() => fetchNews(src), index * 200);
-  });
-
-  // 2. Fetch Videos Second (Lower Priority)
-  setTimeout(() => {
-    SOURCES.video.forEach((src, index) => {
-      setTimeout(() => fetchVideo(src), index * 250);
-    });
-  }, 1000); // 1 second delay after starting news fetch
-
-  // *** Attach scroll listener after initial load ***
-  window.addEventListener('scroll', checkScroll);
-});
+// Start
+init();
 
 </script>
 </body>
