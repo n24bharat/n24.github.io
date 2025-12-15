@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>N24.in | Independent News Monitor</title>
   <meta name="description" content="Aggregated news from independent Indian journalism sources." />
   
@@ -17,27 +16,30 @@
     }
 
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
       margin: 0; padding: 0;
+      line-height: 1.5;
     }
 
+    /* Header */
     header {
       background: #fff;
       border-bottom: 3px solid var(--primary);
-      padding: 1rem;
+      padding: 0.8rem 1rem;
       position: sticky; top: 0; z-index: 100;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
       display: flex; justify-content: space-between; align-items: center;
     }
     .brand { font-size: 1.5rem; font-weight: 900; color: var(--primary); text-decoration: none; }
     
-    .controls select {
-        padding: 5px 10px; border-radius: 4px; border: 1px solid #ddd;
-    }
+    .controls { display: flex; align-items: center; gap: 10px; }
+    select { padding: 6px; border-radius: 4px; border: 1px solid #ddd; }
+    #status { font-size: 0.75rem; font-weight: bold; color: var(--gray); }
 
-    main { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+    /* Grid */
+    main { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
     
     #feed-grid {
       display: grid;
@@ -47,36 +49,45 @@
     }
     main.loaded #feed-grid { opacity: 1; }
 
+    /* Cards */
     .card {
       background: var(--card); border-radius: 8px; overflow: hidden;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
       transition: transform 0.2s;
       display: flex; flex-direction: column;
+      border: 1px solid #e5e7eb;
     }
-    .card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
 
     .media {
       position: relative; padding-top: 56.25%; background: #eee;
+      display: block; overflow: hidden;
     }
     .media img {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
+      transition: opacity 0.3s;
     }
     .type-badge {
         position: absolute; top: 8px; left: 8px;
         background: rgba(0,0,0,0.7); color: #fff;
         padding: 2px 6px; font-size: 0.7rem; border-radius: 3px;
-        text-transform: uppercase;
+        text-transform: uppercase; font-weight: 700; z-index: 2;
     }
-
+    
     .content { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
-    .source { font-size: 0.75rem; color: var(--primary); font-weight: 700; margin-bottom: 5px; }
-    .title { font-size: 1.1rem; font-weight: 700; margin: 0 0 8px; line-height: 1.4; }
+    .source { font-size: 0.75rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; text-transform: uppercase; }
+    .title { font-size: 1.1rem; font-weight: 700; margin: 0 0 8px; line-height: 1.35; color: #111; }
     .title a { text-decoration: none; color: inherit; }
-    .desc { font-size: 0.9rem; color: #555; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .meta { margin-top: auto; padding-top: 10px; border-top: 1px solid #eee; font-size: 0.8rem; color: #888; }
+    .title a:hover { color: var(--primary); text-decoration: underline; }
+    .desc { font-size: 0.9rem; color: #555; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px; }
+    .meta { margin-top: auto; padding-top: 10px; border-top: 1px solid #eee; font-size: 0.8rem; color: #888; display: flex; justify-content: space-between; }
 
     /* Loader */
-    #loader { text-align: center; padding: 40px; color: #666; }
+    #loader { text-align: center; padding: 50px; color: #666; font-style: italic; }
+    
+    /* Skeleton */
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
   </style>
 </head>
 <body>
@@ -85,31 +96,29 @@
   <a href="#" class="brand">N24.in</a>
   <div class="controls">
     <select id="timeFilter" onchange="applyFilters()">
-        <option value="24" selected>Latest 24 Hours</option>
-        <option value="168">Latest Week</option>
+        <option value="24">Last 24 Hours</option>
+        <option value="168">Last Week</option>
         <option value="all">All Time</option>
     </select>
-    <span id="status" style="font-size: 0.8rem; margin-left: 10px;">Init...</span>
+    <span id="status">Init...</span>
   </div>
 </header>
 
 <main>
-  <div id="loader">Loading independent reports...</div>
+  <div id="loader">Fetching latest independent news...</div>
   <div id="feed-grid"></div>
 </main>
 
 <script>
 /**
  * SOURCES CONFIGURATION
- * Now includes a 'backupUrl' for news sources.
- * Primary: Direct RSS (Better quality)
- * Backup: Google News RSS (High reliability)
+ * Strategy: Try 'url' first (Direct). If fails, try 'backupUrl' (Google News).
  */
 const SOURCES = {
   news: [
     { 
       name: "The Wire Hindi", 
-      url: "https://thewirehindi.com/feed/",
+      url: "https://thewirehindi.com/feed/", 
       backupUrl: "https://news.google.com/rss/search?q=site:thewirehindi.com&hl=hi&gl=IN&ceid=IN:hi"
     },
     { 
@@ -152,111 +161,131 @@ const SOURCES = {
   ]
 };
 
-// Proxies
-const PRIMARY_PROXY = "https://api.allorigins.win/get?url=";
-// Secondary proxy if needed (rarely used now with fallback logic)
-const BACKUP_PROXY = "https://corsproxy.io/?url=";
+// Proxy Configuration
+const PROXY_BASE = "https://api.allorigins.win/get?url=";
 
 let ALL_ITEMS = [];
 let ACTIVE_REQUESTS = 0;
-let IS_RENDERED = false;
+let HAS_RENDERED_ONCE = false;
 
-// --- 1. FETCH LOGIC ---
+// --- 1. CORE FETCH LOGIC ---
 
-async function init() {
+function init() {
     updateStatus();
     
-    // Fetch News with fallback logic
-    SOURCES.news.forEach(src => fetchWithFallback(src, 'news'));
+    // Process News Sources (With Fallback)
+    SOURCES.news.forEach((src, idx) => {
+        setTimeout(() => fetchSourceWithFallback(src), idx * 100);
+    });
 
-    // Fetch Videos (No fallback needed for YouTube usually, but robust logic applied)
-    SOURCES.video.forEach(src => {
+    // Process Video Sources (Standard)
+    SOURCES.video.forEach((src, idx) => {
         const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${src.id}`;
-        fetchWithFallback({ name: src.name, url: url, isVideo: true }, 'video');
+        setTimeout(() => fetchSourceWithFallback({ ...src, url: url, isVideo: true }), 500 + (idx * 100));
     });
 }
 
-async function fetchWithFallback(source, type) {
+/**
+ * Tries the primary URL. If it fails, tries the backup URL.
+ */
+async function fetchSourceWithFallback(source) {
     ACTIVE_REQUESTS++;
     updateStatus();
 
-    // Attempt 1: Direct URL via Primary Proxy
-    let success = await tryFetch(source.url, source.name, type);
+    // 1. Try Primary URL
+    let success = await attemptFetch(source.url, source.name, source.isVideo);
 
-    // Attempt 2: If failed and backup exists, try Backup URL
+    // 2. If Primary failed and Backup exists, Try Backup
     if (!success && source.backupUrl) {
         console.warn(`⚠️ Switching to Google Backup for ${source.name}`);
-        success = await tryFetch(source.backupUrl, source.name, type);
+        success = await attemptFetch(source.backupUrl, source.name, source.isVideo);
+    }
+
+    if (!success) {
+        console.error(`❌ Failed ${source.name}`);
     }
 
     ACTIVE_REQUESTS--;
     updateStatus();
     
-    // If we have items and haven't rendered yet (or have new items), render
+    // Progressive Rendering: If we have items, show them immediately
     if (ALL_ITEMS.length > 0) {
         applyFilters();
     }
 }
 
-async function tryFetch(url, sourceName, type) {
+/**
+ * Fetches a single URL via Proxy and parses it.
+ * Returns true on success, false on failure.
+ */
+async function attemptFetch(url, sourceName, isVideo) {
     try {
-        const response = await fetch(PRIMARY_PROXY + encodeURIComponent(url));
+        // Set a timeout signal (10 seconds max)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        const response = await fetch(PROXY_BASE + encodeURIComponent(url), {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
         const data = await response.json();
         if (!data.contents) throw new Error("Empty Proxy Response");
 
+        // Parse XML
         const parser = new DOMParser();
         const xml = parser.parseFromString(data.contents, "text/xml");
         
-        // Check for XML parse errors
+        // Valid XML check
         if (xml.querySelector("parsererror")) throw new Error("XML Parse Error");
 
         const items = xml.querySelectorAll("item, entry");
-        if (items.length === 0) throw new Error("No items found in feed");
+        if (items.length === 0) throw new Error("No items found");
 
+        // Process Items
         items.forEach(entry => {
-            const item = parseEntry(entry, sourceName, type);
-            if (item) ALL_ITEMS.push(item);
+            const parsed = parseEntry(entry, sourceName, isVideo);
+            if (parsed) ALL_ITEMS.push(parsed);
         });
 
-        return true; // Success
+        return true;
 
     } catch (e) {
-        console.warn(`❌ Failed ${sourceName} (${url}): ${e.message}`);
-        return false; // Failed
+        // console.log(`Attempt failed for ${url}: ${e.message}`); // Debug only
+        return false;
     }
 }
 
-function parseEntry(entry, source, type) {
+function parseEntry(entry, source, isVideo) {
     try {
         const title = entry.querySelector("title")?.textContent || "";
         if (title.length < 5) return null;
 
-        const pubDateStr = entry.querySelector("pubDate")?.textContent || entry.querySelector("published")?.textContent;
-        const date = new Date(pubDateStr);
+        const dateStr = entry.querySelector("pubDate")?.textContent || entry.querySelector("published")?.textContent;
+        const date = new Date(dateStr);
         if (isNaN(date.getTime())) return null;
 
         let link = "";
         let thumb = null;
         let desc = "";
 
-        if (type === 'video') {
+        if (isVideo) {
+            // YouTube Logic
             link = entry.querySelector("link[rel='alternate']")?.getAttribute("href") || entry.querySelector("link")?.textContent;
             
-            // Smart Regex for Video IDs (Shorts, Watch, Embeds)
-            const videoIdMatch = link.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([^&?\/]+)/);
-            const videoId = videoIdMatch ? videoIdMatch[1] : null;
+            // Video ID Extraction
+            const idMatch = link.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([^&?\/]+)/);
+            const vidId = idMatch ? idMatch[1] : null;
 
-            if (videoId) {
-                thumb = `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
-            }
+            if (vidId) thumb = `https://i.ytimg.com/vi/${vidId}/mqdefault.jpg`;
         } else {
             // News Logic
             link = entry.querySelector("link")?.textContent;
             
-            // Clean Google Redirects if present
-            if (link.includes("url=")) {
+            // Clean Google Redirects
+            if (link && link.includes("url=")) {
                 const match = link.match(/url=(.+?)(&|$)/);
                 if (match) link = decodeURIComponent(match[1]);
             }
@@ -265,20 +294,21 @@ function parseEntry(entry, source, type) {
             const tempDiv = document.createElement("div");
             tempDiv.innerHTML = rawDesc;
             
-            // Try to find image in description
+            // Extract Image
             const img = tempDiv.querySelector("img");
             if (img) thumb = img.src;
             
-            desc = tempDiv.textContent.substring(0, 160) + "...";
+            // Clean Text
+            desc = tempDiv.textContent.replace(/<[^>]+>/g, '').substring(0, 160) + "...";
         }
 
         return {
             title,
             link,
-            date,
             timestamp: date.getTime(),
+            date,
             source,
-            type,
+            type: isVideo ? 'video' : 'news',
             thumb,
             desc
         };
@@ -301,10 +331,10 @@ function applyFilters() {
         filtered = ALL_ITEMS.filter(item => item.timestamp > cutoff);
     }
 
-    // Sort Newest First
+    // Sort
     filtered.sort((a, b) => b.timestamp - a.timestamp);
 
-    // Limit items for performance (render top 100)
+    // Limit items to prevent DOM overload
     renderGrid(filtered.slice(0, 100));
 }
 
@@ -312,19 +342,20 @@ function renderGrid(items) {
     const grid = document.getElementById('feed-grid');
     const loader = document.getElementById('loader');
     
-    // Hide loader if we have items
     if (items.length > 0) {
-        loader.style.display = 'none';
+        if (loader) loader.style.display = 'none';
         document.querySelector('main').classList.add('loaded');
+        HAS_RENDERED_ONCE = true;
     }
 
     grid.innerHTML = items.map(item => {
         let mediaHTML = '';
         
+        // Show Image/Video Thumbnail
         if (item.thumb) {
             mediaHTML = `
             <a href="${item.link}" target="_blank" class="media">
-                <span class="type-badge">${item.type}</span>
+                <span class="type-badge" style="background:${item.type==='video'?'#d32f2f':'#1976d2'}">${item.type}</span>
                 <img src="${item.thumb}" loading="lazy" onerror="this.style.display='none'">
             </a>`;
         }
@@ -352,10 +383,10 @@ function updateStatus() {
     const el = document.getElementById('status');
     if (ACTIVE_REQUESTS > 0) {
         el.innerText = `Updating... (${ACTIVE_REQUESTS})`;
-        el.style.color = '#e65100'; // Orange
+        el.style.color = '#e65100';
     } else {
-        el.innerText = `● Live`;
-        el.style.color = '#2e7d32'; // Green
+        el.innerText = `● Live (${ALL_ITEMS.length})`;
+        el.style.color = '#2e7d32';
     }
 }
 
@@ -363,8 +394,10 @@ function timeAgo(date) {
     const seconds = Math.floor((new Date() - date) / 1000);
     let interval = seconds / 3600;
     if (interval > 24) return Math.floor(interval/24) + "d ago";
-    if (interval >= 1) return Math.floor(interval) + "h ago";
-    return Math.floor(seconds / 60) + "m ago";
+    if (interval > 1) return Math.floor(interval) + "h ago";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + "m ago";
+    return "Just now";
 }
 
 // Start
